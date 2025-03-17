@@ -1,6 +1,5 @@
 package com.example.gamestore.ui.composables
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -12,7 +11,6 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,13 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import com.google.firebase.quickstart.auth.kotlin.EmailPasswordActivity
 
 @Composable
-fun LeftAppBar(navController: NavController) {
-    val context = LocalContext.current // Get current activity context
-
+fun LeftAppBar(onNavigateToSignIn: () -> Unit) {
     ModalDrawerSheet {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp)
@@ -67,8 +61,7 @@ fun LeftAppBar(navController: NavController) {
                 selected = false,
                 icon = { Icon(Icons.Outlined.AccountCircle, contentDescription = null) },
                 onClick = {
-                    val intent = Intent(context, EmailPasswordActivity::class.java)
-                    context.startActivity(intent) // Start the EmailPasswordActivity
+                    onNavigateToSignIn()  // Call the callback function
                 }
             )
             Spacer(Modifier.height(12.dp))

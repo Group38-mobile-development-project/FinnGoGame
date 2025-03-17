@@ -1,4 +1,4 @@
-package com.google.firebase.quickstart.auth.kotlin
+package com.example.gamestore
 
 import android.app.Activity
 import android.os.Bundle

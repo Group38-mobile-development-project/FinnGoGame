@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "455665631188",
+    "project_id": "gamestore-bbb4d",
+    "storage_bucket": "gamestore-bbb4d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455665631188:android:0300af6287619bbdbde041",
+        "android_client_info": {
+          "package_name": "com.example.gamestore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLye6StVhwH6T5cFJxFOSco9vta4Eg1iA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
