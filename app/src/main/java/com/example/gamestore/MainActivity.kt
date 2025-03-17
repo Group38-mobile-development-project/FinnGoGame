@@ -6,13 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,12 +33,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GameStoreApp(modifier: Modifier = Modifier) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
+    val drawerStateLeft = rememberDrawerState(initialValue = DrawerValue.Closed)
     val navController = rememberNavController()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            LeftAppBar(onNavigateToSignIn = { navController.navigate("sign") })  // Pass lambda
+            LeftAppBar(
+                onNavigateToSignIn = { navController.navigate("sign") },
+                onSignOut = { navController.navigate("home") },
+                drawerState = drawerState
+            )
+            /*TopAppBar(
+                onNavigateToHome = { navController.navigate("home") },
+            )*/
         },
         gesturesEnabled = true
     ) {
@@ -60,7 +63,7 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
                     MainScreen(modifier)
                 }
                 composable(route = "sign") {
-                    LoginScreen(navController)  // Ensure you implement this screen
+                    LoginScreen(navController)
                 }
             }
         }
