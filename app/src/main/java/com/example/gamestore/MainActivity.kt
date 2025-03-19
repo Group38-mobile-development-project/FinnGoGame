@@ -33,7 +33,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GameStoreApp(modifier: Modifier = Modifier) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
-    val drawerStateLeft = rememberDrawerState(initialValue = DrawerValue.Closed)
     val navController = rememberNavController()
 
     ModalNavigationDrawer(
@@ -41,12 +40,13 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
         drawerContent = {
             LeftAppBar(
                 onNavigateToSignIn = { navController.navigate("sign") },
-                onSignOut = { navController.navigate("home") },
+                onSignOut = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true } // Avoid multiple "home" stacking
+                    }
+                },
                 drawerState = drawerState
             )
-            /*TopAppBar(
-                onNavigateToHome = { navController.navigate("home") },
-            )*/
         },
         gesturesEnabled = true
     ) {

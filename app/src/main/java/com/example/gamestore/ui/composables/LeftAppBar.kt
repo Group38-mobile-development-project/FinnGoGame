@@ -12,11 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
-import com.example.gamestore.EmailPasswordActivity // Import your EmailPasswordActivity
 
 @Composable
 fun LeftAppBar(
@@ -24,24 +21,22 @@ fun LeftAppBar(
     onSignOut: () -> Unit,
     drawerState: DrawerState
 ) {
-    // Initialize Firebase Auth
-    val auth = Firebase.auth
-    val user = Firebase.auth.currentUser
-    user?.let {
-        for (profile in it.providerData) {
-            // Id of the provider (ex: google.com)
-            val providerId = profile.providerId
+    val auth = remember { FirebaseAuth.getInstance() }
+    var userEmail by remember { mutableStateOf(auth.currentUser?.email) }
+    val scope = rememberCoroutineScope()
 
-            // UID specific to the provider
-            val uid = profile.uid
+    // Listen for auth state changes
+    DisposableEffect(auth) {
+        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            userEmail = firebaseAuth.currentUser?.email
+        }
+        auth.addAuthStateListener(listener)
 
-            // Name, email address, and profile photo Url
-            val name = profile.displayName
-            val email = profile.email
-            val photoUrl = profile.photoUrl
+        onDispose {
+            auth.removeAuthStateListener(listener)
         }
     }
-    val scope = rememberCoroutineScope()
+
     ModalDrawerSheet {
         Column(
             modifier = Modifier
@@ -49,17 +44,16 @@ fun LeftAppBar(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(12.dp))
-            // Display user email if logged in, otherwise show "Not logged in"
-            // does not work properly
+
+            // Show user email if logged in, otherwise show "Not logged in"
             Text(
-                text = user?.email?: "Not logged in",
+                text = userEmail ?: "Not logged in",
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.titleLarge
             )
 
             HorizontalDivider()
 
-            // Navigation items
             Text("Shop", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
             NavigationDrawerItem(
                 label = { Text("ShoppingCart") },
@@ -85,31 +79,29 @@ fun LeftAppBar(
                 onClick = { /* Handle settings */ }
             )
 
-            // Show Login or Logout button based on auth state
-            if (user == null) {
+            if (userEmail == null) {
+                // Show Login button if user is not logged in
                 NavigationDrawerItem(
                     label = { Text("Login") },
                     selected = false,
                     icon = { Icon(Icons.Outlined.AccountCircle, contentDescription = null) },
                     onClick = {
                         onNavigateToSignIn()
-                        scope.launch {
-                            drawerState.apply { close() }
-                        }
-                    } // Call parent function
+                        scope.launch { drawerState.close() }
+                    }
                 )
             } else {
+                // Show Logout button if user is logged in
                 NavigationDrawerItem(
                     label = { Text("Logout") },
                     selected = false,
                     icon = { Icon(Icons.Outlined.AccountCircle, contentDescription = null) },
                     onClick = {
-                        FirebaseAuth.getInstance().signOut() // Sign out user
-                        onSignOut()
-                        scope.launch {
-                            drawerState.apply { close() }
-                        }
-                    }// Call parent function
+                        auth.signOut() // Sign out the user
+                        userEmail = null // Immediately update UI
+                        onSignOut() // Navigate back to home
+                        scope.launch { drawerState.close() }
+                    }
                 )
             }
 
