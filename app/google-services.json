@@ -12,7 +12,20 @@
           "package_name": "com.example.gamestore"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "455665631188-7jfopjp5899gepq02lr6g57cr2q04tj1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gamestore",
+            "certificate_hash": "4c8b87228e88d224ecb4f9e5b5bdb44df9595f2c"
+          }
+        },
+        {
+          "client_id": "455665631188-tgkrlcase7i861sj4nsgjt1mo5sca9rt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDLye6StVhwH6T5cFJxFOSco9vta4Eg1iA"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "455665631188-tgkrlcase7i861sj4nsgjt1mo5sca9rt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
