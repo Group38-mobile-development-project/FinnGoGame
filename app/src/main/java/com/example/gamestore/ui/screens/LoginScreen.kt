@@ -7,16 +7,21 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.gamestore.EmailPasswordActivity
+import com.example.gamestore.GoogleSignInActivity
 
 @Composable
 fun LoginScreen(navController: NavController) {
     val emailPasswordActivity = remember { EmailPasswordActivity() }
+    val googleSignInActivity = remember { GoogleSignInActivity() }
+    val context = LocalContext.current // Get the current context
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -96,6 +101,14 @@ fun LoginScreen(navController: NavController) {
             Text(if (isLoginMode) "Don't have an account? Sign up" else "Already have an account? Login")
         }
 
+        Button(
+            onClick = { googleSignInActivity.launchCredentialManager(context) },
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        ) {
+            Text("Sign in with Google")
+        }
+
         errorMessage?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
         }
@@ -105,5 +118,5 @@ fun LoginScreen(navController: NavController) {
 @Preview
 @Composable
 fun PreviewLoginScreen() {
-    LoginScreen(navController = NavController(androidx.compose.ui.platform.LocalContext.current))
+    LoginScreen(navController = rememberNavController())
 }
