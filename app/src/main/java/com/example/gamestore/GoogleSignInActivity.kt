@@ -13,17 +13,18 @@ import kotlinx.coroutines.launch
 
 class GoogleSignInActivity {
 
-    private var auth: FirebaseAuth = Firebase.auth
+    private lateinit var auth: FirebaseAuth
     private lateinit var credentialManager: CredentialManager
 
-    fun launchCredentialManager(context: Context) {
+    fun launchCredentialManager(context: Context, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        auth = Firebase.auth
         credentialManager = CredentialManager.create(context)
         CoroutineScope(Dispatchers.Main).launch {
-            signInWithGoogle(context)
+            signInWithGoogle(context, onSuccess, onFailure)
         }
     }
 
-    private suspend fun signInWithGoogle(context: Context) {
+    private suspend fun signInWithGoogle(context: Context, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setServerClientId(context.getString(R.string.default_web_client_id))
             .setFilterByAuthorizedAccounts(false)
@@ -35,29 +36,33 @@ class GoogleSignInActivity {
 
         try {
             val result = credentialManager.getCredential(context, request)
-            handleSignIn(result.credential)
+            handleSignIn(result.credential, onSuccess, onFailure)
         } catch (e: GetCredentialException) {
             Log.e(TAG, "Couldn't retrieve user's credentials: ${e.localizedMessage}")
+            onFailure("Couldn't retrieve user's credentials: ${e.localizedMessage}")
         }
     }
 
-    private fun handleSignIn(credential: Credential) {
+    private fun handleSignIn(credential: Credential, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-            firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
+            firebaseAuthWithGoogle(googleIdTokenCredential.idToken, onSuccess, onFailure)
         } else {
             Log.w(TAG, "Credential is not of type Google ID!")
+            onFailure("Credential is not of type Google ID!")
         }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
+    private fun firebaseAuthWithGoogle(idToken: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d(TAG, "signInWithCredential:success")
+                    onSuccess()
                 } else {
-                    Log.w(TAG, "signInWithCredential:failure", task.exception)
+                    Log.w(TAG, "signInWithCredential:failure")
+                    onFailure(task.exception?.message ?: "Unknown error")
                 }
             }
     }

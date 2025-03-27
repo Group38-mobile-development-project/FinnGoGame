@@ -1,5 +1,8 @@
 package com.example.gamestore.ui.screens
 
+import android.content.Context
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -7,7 +10,9 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -16,6 +21,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.gamestore.EmailPasswordActivity
 import com.example.gamestore.GoogleSignInActivity
+import com.example.gamestore.R
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -74,7 +80,7 @@ fun LoginScreen(navController: NavController) {
                 if (isLoginMode) {
                     emailPasswordActivity.signIn(email, password) { success, message ->
                         if (success) {
-                            navController.navigate("home")
+                            navController.navigate("home")// Navigate to home on success
                         } else {
                             errorMessage = message
                         }
@@ -101,19 +107,44 @@ fun LoginScreen(navController: NavController) {
             Text(if (isLoginMode) "Don't have an account? Sign up" else "Already have an account? Login")
         }
 
-        Button(
-            onClick = { googleSignInActivity.launchCredentialManager(context)},
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-        ) {
-            Text("Sign in with Google")
-        }
+        GoogleSignInButton(googleSignInActivity, context, navController)
 
         errorMessage?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
+
+@Composable
+fun GoogleSignInButton(googleSignInActivity: GoogleSignInActivity, context: Context, navController: NavController) {
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clickable {
+                googleSignInActivity.launchCredentialManager(
+                    context,
+                    onSuccess = { navController.navigate("home") }, // Navigate to home on success
+                    onFailure = { errorMessage = it }
+                )
+            },
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.androidlightrdsu3x),
+            contentDescription = "Sign in with Google",
+            modifier = Modifier.fillMaxWidth(),
+            contentScale = ContentScale.FillHeight
+        )
+    }
+
+    errorMessage?.let {
+        Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+
 
 @Preview
 @Composable
