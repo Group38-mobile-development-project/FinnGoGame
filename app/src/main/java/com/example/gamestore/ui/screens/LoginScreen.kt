@@ -102,7 +102,7 @@ fun LoginScreen(navController: NavController) {
         }
 
         Button(
-            onClick = { googleSignInActivity.launchCredentialManager(context) },
+            onClick = { googleSignInActivity.launchCredentialManager(context)},
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
