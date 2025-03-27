@@ -74,4 +74,12 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //api
+    implementation(libs.retrofit)
+    implementation(libs.gsonConverter)
+    implementation(libs.lifecycleViewModel)
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation ("androidx.paging:paging-runtime-ktx:3.1.1")
+    implementation ("androidx.paging:paging-compose:1.0.0-alpha20")
 }
