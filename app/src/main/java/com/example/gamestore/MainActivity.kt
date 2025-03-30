@@ -16,6 +16,7 @@ import com.example.gamestore.ui.composables.LeftAppBar
 import com.example.gamestore.ui.composables.TopAppBar
 import com.example.gamestore.ui.screens.LoginScreen
 import com.example.gamestore.ui.screens.MainScreen
+import com.example.gamestore.ui.screens.SettingsScreen
 import com.example.gamestore.ui.theme.GamestoreTheme
 
 class MainActivity : ComponentActivity() {
@@ -45,6 +46,7 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
                         popUpTo("home") { inclusive = true } // Avoid multiple "home" stacking
                     }
                 },
+                onNavigateToSettings = { navController.navigate("settings") },
                 drawerState = drawerState
             )
         },
@@ -61,6 +63,9 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
             ) {
                 composable(route = "home") {
                     MainScreen(modifier)
+                }
+                composable(route = "settings") {
+                    SettingsScreen(navController)
                 }
                 composable(route = "sign") {
                     LoginScreen(navController)

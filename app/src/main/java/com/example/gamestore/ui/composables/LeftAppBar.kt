@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 fun LeftAppBar(
     onNavigateToSignIn: () -> Unit,
     onSignOut: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     drawerState: DrawerState
 ) {
     val auth = remember { FirebaseAuth.getInstance() }
@@ -75,8 +76,10 @@ fun LeftAppBar(
                 label = { Text("Settings") },
                 selected = false,
                 icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-                badge = { Text("20") }, // Placeholder badge
-                onClick = { /* Handle settings */ }
+                onClick = {
+                    onNavigateToSettings()
+                    scope.launch { drawerState.close() }
+                }
             )
 
             if (userEmail == null) {

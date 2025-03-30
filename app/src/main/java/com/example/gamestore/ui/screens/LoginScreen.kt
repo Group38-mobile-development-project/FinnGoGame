@@ -78,17 +78,17 @@ fun LoginScreen(navController: NavController) {
                     return@Button
                 }
                 if (isLoginMode) {
-                    emailPasswordActivity.signIn(email, password) { success, message ->
+                    emailPasswordActivity.signIn(context, email, password) { success, message ->
                         if (success) {
-                            navController.navigate("home")// Navigate to home on success
+                            navController.navigate("home") // Navigate to home on success
                         } else {
                             errorMessage = message
                         }
                     }
                 } else {
-                    emailPasswordActivity.createAccount(email, password) { success, message ->
+                    emailPasswordActivity.createAccount(context, email, password) { success, message ->
                         if (success) {
-                            navController.navigate("home")
+                            navController.navigate("home") // Navigate only after verification
                         } else {
                             errorMessage = message
                         }
@@ -99,6 +99,7 @@ fun LoginScreen(navController: NavController) {
         ) {
             Text(if (isLoginMode) "Login" else "Sign Up")
         }
+
 
         TextButton(
             onClick = { isLoginMode = !isLoginMode },
