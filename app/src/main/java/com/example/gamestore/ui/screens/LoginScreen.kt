@@ -1,6 +1,7 @@
 package com.example.gamestore.ui.screens
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -50,7 +51,6 @@ fun LoginScreen(navController: NavController) {
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            placeholder = { Text("Email") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -58,11 +58,13 @@ fun LoginScreen(navController: NavController) {
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
-            placeholder = { Text("Password") },
+            placeholder = { Text("Password requires at least five characters and one number") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                IconButton(onClick = { passwordVisible = !passwordVisible
+                    Toast.makeText(context, if (passwordVisible) "visible" else "invisible", Toast.LENGTH_SHORT).show()
+                }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Outlined.CheckCircle else Icons.Filled.CheckCircle,
                         contentDescription = if (passwordVisible) "Hide password" else "Show password"

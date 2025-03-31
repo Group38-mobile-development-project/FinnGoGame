@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.Firebase
+import com.google.firebase.auth.EmailAuthProvider
 
 class EmailPasswordActivity : Activity() {
 
@@ -45,8 +46,8 @@ class EmailPasswordActivity : Activity() {
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "createUserWithEmail:failure", task.exception)
-                    Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
                     onResult(false, task.exception?.localizedMessage)
+                    Toast.makeText(context, task.exception?.localizedMessage, Toast.LENGTH_SHORT).show()
                 }
             }// [END create_user_with_email]
     }
@@ -67,20 +68,18 @@ class EmailPasswordActivity : Activity() {
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithEmail:failure", task.exception)
-                    Toast.makeText(
-                        context,
-                        "Authentication failed.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
                     onResult(false, task.exception?.localizedMessage)
+                    Toast.makeText(context,task.exception?.localizedMessage, Toast.LENGTH_SHORT).show()
                 }
             }
         // [END sign_in_with_email]
     }
 
-    fun updateEmail(context: Context, newEmail: String, onResult: (Boolean, String?) -> Unit) {
+    fun updateEmail(context: Context, newEmail: String, currentPassword: String, onResult: (Boolean, String?) -> Unit) {
         val user = getCurrentUser()
-        user?.verifyBeforeUpdateEmail(newEmail)?.addOnCompleteListener { task ->
+        val credential = EmailAuthProvider.getCredential(user!!.email!!, currentPassword)
+        user.reauthenticate(credential).addOnCompleteListener { Log.d(TAG, "User re-authenticated.") }
+        user.verifyBeforeUpdateEmail(newEmail).addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Log.d("EmailPassword", "Email update successful. Verification email sent.")
                 Toast.makeText(context, "Verification email sent to $newEmail. Please verify to complete the update.", Toast.LENGTH_LONG).show()
@@ -90,42 +89,48 @@ class EmailPasswordActivity : Activity() {
                 Log.w("EmailPassword", "Failed to update email: ${task.exception?.message}")
                 task.exception?.printStackTrace()
                 onResult(false, "Failed to update email: ${task.exception?.message}")
+                Toast.makeText(context,"Failed to update email: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    fun updatePassword(context: Context, newPassword: String, onResult: (Boolean, String?) -> Unit) {
+    fun updatePassword(context: Context, newPassword: String, currentPassword:String, onResult: (Boolean, String?) -> Unit) {
         val user = getCurrentUser()
-        //val credential = EmailAuthProvider.getCredential(email, password)
-        //user!!.reauthenticate(credential).addOnCompleteListener { Log.d(TAG, "User re-authenticated.") }
-        //need to implement reauthentication
+        val credential = EmailAuthProvider.getCredential(user!!.email!!, currentPassword)
+        user.reauthenticate(credential).addOnCompleteListener { Log.d(TAG, "User re-authenticated.") }
+
         if(newPassword.isBlank()) {
             Log.w(TAG, "Password is empty")
             onResult(false, "Password cannot be empty")
             Toast.makeText(context, "Password cannot be empty", Toast.LENGTH_SHORT).show()
             return
         }
-        user?.updatePassword(newPassword)?.addOnCompleteListener { task ->
+        user.updatePassword(newPassword).addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Log.d(TAG, "User password updated.")
-                Toast.makeText(context, "Updated password.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Password updated.", Toast.LENGTH_SHORT).show()
                 onResult(true, null)
             } else {
                 Log.w(TAG, "Failed to update password", task.exception)
                 onResult(false, task.exception?.localizedMessage)
+                Toast.makeText(context, "Failed to update password", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    fun deleteAccount(onResult: (Boolean, String?) -> Unit) {
+    fun deleteAccount(context: Context, currentPassword: String, onResult: (Boolean, String?) -> Unit) {
         val user = getCurrentUser()
-        user?.delete()?.addOnCompleteListener { task ->
+        val credential = EmailAuthProvider.getCredential(user!!.email!!, currentPassword)
+        user.reauthenticate(credential).addOnCompleteListener { Log.d(TAG, "User re-authenticated.") }
+        user.delete().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Log.d(TAG, "User account deleted.")
+                Toast.makeText(context, "Account deleted.", Toast.LENGTH_SHORT).show()
                 onResult(true, null)
             } else {
                 Log.w(TAG, "Failed to delete account", task.exception)
                 onResult(false, task.exception?.localizedMessage)
+                Toast.makeText(context, "Failed to delete account", Toast.LENGTH_SHORT).show()
             }
         }
     }
