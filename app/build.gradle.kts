@@ -82,4 +82,18 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation ("androidx.paging:paging-runtime-ktx:3.1.1")
     implementation ("androidx.paging:paging-compose:1.0.0-alpha20")
+
+
+        // For Retrofit
+        implementation (libs.retrofit)
+        implementation (libs.gsonConverter)
+
+        // For coroutines (if you don’t already have them)
+        implementation (libs.kotlinx.coroutines.core)
+        implementation (libs.kotlinx.coroutines.android)
+
+        // For Coil (image loading)
+        implementation (libs.coil.kt.coil.compose)
+
+
 }

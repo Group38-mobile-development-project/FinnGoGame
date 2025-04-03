@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object ApiClient {
 
     private const val BASE_URL = "https://api.rawg.io/api/"
-    private const val API_KEY = "3e3052ba07ce493c93f7cb3659a03030"
+    private const val API_KEY = "e0ba500bfa8e4992b4d7ee3f7c5d5b6a"
 
     private val apiKeyInterceptor = Interceptor { chain ->
         val original = chain.request()

@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LeftAppBar(
+    onNavigateToHome:() ->Unit,
     onNavigateToSignIn: () -> Unit,
     onSignOut: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -56,6 +58,18 @@ fun LeftAppBar(
             HorizontalDivider()
 
             Text("Shop", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
+
+            NavigationDrawerItem(
+                label = { Text("Home") },
+                selected = false,
+                icon = { Icon(Icons.Outlined.Menu, contentDescription = null) },
+                onClick = {
+                    onNavigateToHome()
+                    scope.launch { drawerState.close() }
+                }
+            )
+
+
             NavigationDrawerItem(
                 label = { Text("ShoppingCart") },
                 selected = false,

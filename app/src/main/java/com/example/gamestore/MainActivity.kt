@@ -40,6 +40,11 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
         drawerState = drawerState,
         drawerContent = {
             LeftAppBar(
+                onNavigateToHome = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
                 onNavigateToSignIn = { navController.navigate("sign") },
                 onSignOut = {
                     navController.navigate("home") {
@@ -61,9 +66,11 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
                 startDestination = "home",
                 modifier = Modifier.padding(innerPadding)
             ) {
+                // In MainActivity's NavHost:
                 composable(route = "home") {
-                    MainScreen(modifier)
+                    MainScreen(navController) // or MainScreen(modifier = Modifier.fillMaxSize())
                 }
+
                 composable(route = "settings") {
                     SettingsScreen(navController)
                 }
