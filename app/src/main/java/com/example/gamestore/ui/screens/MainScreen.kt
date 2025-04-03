@@ -17,6 +17,8 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberImagePainter
 import com.example.gamestore.ui.GameViewModel
 import com.example.gamestore.ui.model.Game
+import com.example.gamestore.presentation.utils.AppTopBar // H add search
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,18 +39,22 @@ fun MainScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
 
-        // 1. Search Bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = {
-                searchQuery = it
-                viewModel.search(searchQuery) // Trigger search as user types
-            },
-            label = { Text("Search Games...") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
+        //// 1. Search Bar
+//        OutlinedTextField(
+//            value = searchQuery,
+//            onValueChange = {
+//                searchQuery = it
+//                viewModel.search(searchQuery) // Trigger search as user types
+//            },
+//            label = { Text("Search Games...") },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp)
+//        )
+
+        // H add search_ Add top bar here
+        AppTopBar(title = "Search", navController = navController)
+
 
         // 2. Top-Rated Section
         Text(

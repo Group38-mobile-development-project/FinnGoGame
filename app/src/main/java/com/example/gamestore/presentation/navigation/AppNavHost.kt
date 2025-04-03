@@ -1,30 +1,53 @@
 package com.example.gamestore.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.gamestore.presentation.genre.GenreListScreen
 import com.example.gamestore.presentation.game.GameDetailScreen
-import com.example.gamestore.presentation.game.GameListScreen
 import com.example.gamestore.presentation.game.GameListScreenFilteredByGenre
-
-//debug
-import android.util.Log
-
+import com.example.gamestore.presentation.search.GameSearchScreen
+import com.example.gamestore.ui.screens.LoginScreen
+import com.example.gamestore.ui.screens.MainScreen
+import com.example.gamestore.ui.screens.SettingsScreen
 
 @Composable
-fun AppNavHost() {
-    val navController = rememberNavController()
+fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+    NavHost(navController = navController, startDestination = "home", modifier = modifier) {
 
-    NavHost(navController = navController, startDestination = "genre_list") {
+        composable("home") {
+            MainScreen(navController = navController)
+        }
+
+        composable("sign") {
+            LoginScreen(navController = navController)
+        }
+
+        composable("settings") {
+            SettingsScreen(navController = navController)
+        }
+
+
+        composable("search") {
+            GameSearchScreen(
+                navController = navController,
+                onGameClick = { gameId ->
+                    navController.navigate("game_detail/$gameId")
+                }
+            )
+        }
+
         composable("genre_list") {
-            GenreListScreen(onGenreClick = { genre ->
-                //Log.d("GENRE_CLICK", "You clicked on ${genre.title}")
-                navController.navigate("game_list/${genre.identifier}")
-            })
+            GenreListScreen(
+                navController = navController,
+                onGenreClick = { genre ->
+                    navController.navigate("game_list/${genre.identifier}")
+                }
+            )
         }
 
         composable(
@@ -34,6 +57,7 @@ fun AppNavHost() {
             val genreSlug = backStackEntry.arguments?.getString("genreSlug") ?: ""
             GameListScreenFilteredByGenre(
                 genreSlug = genreSlug,
+                navController = navController,
                 onGameClick = { gameId ->
                     navController.navigate("game_detail/$gameId")
                 }
@@ -46,12 +70,6 @@ fun AppNavHost() {
         ) { backStackEntry ->
             val gameId = backStackEntry.arguments?.getInt("gameId") ?: 0
             GameDetailScreen(gameId)
-        }
-
-        composable("game_list") {
-            GameListScreen(onGameClick = { gameId ->
-                navController.navigate("game_detail/$gameId")
-            })
         }
     }
 }

@@ -6,7 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
@@ -62,7 +62,7 @@ fun LeftAppBar(
             NavigationDrawerItem(
                 label = { Text("Home") },
                 selected = false,
-                icon = { Icon(Icons.Outlined.Menu, contentDescription = null) },
+                icon = { Icon(Icons.Outlined.Home, contentDescription = null) },
                 onClick = {
                     onNavigateToHome()
                     scope.launch { drawerState.close() }
