@@ -16,11 +16,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.gamestore.ui.GameViewModel
 import com.example.gamestore.ui.model.Game
-import com.example.gamestore.presentation.utils.AppTopBar // H add search
+import com.example.gamestore.presentation.utils.SearchBar // H add search
 
 @Composable
 fun MainScreen(
@@ -54,7 +53,7 @@ fun MainScreen(
 //        )
 
         // H add search_ Add top bar here
-        AppTopBar(title = "Search", navController = navController)
+        SearchBar(title = "Search", navController = navController)
 
 
         // 2. Top-Rated Section

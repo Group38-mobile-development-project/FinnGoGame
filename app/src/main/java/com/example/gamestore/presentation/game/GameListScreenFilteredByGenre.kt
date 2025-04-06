@@ -5,8 +5,6 @@ package com.example.gamestore.presentation.game
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,7 +13,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.example.gamestore.presentation.genre.GenreGameViewModel
-import com.example.gamestore.presentation.utils.AppTopBar
+import com.example.gamestore.presentation.utils.SearchBar
 
 //@OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,11 +26,8 @@ fun GameListScreenFilteredByGenre(
     val pagingItems = viewModel.games.collectAsLazyPagingItems()
 
     Scaffold(
-//        topBar = {
-//            TopAppBar(title = { Text("Games in $genreSlug") })
-//        }
         topBar = {
-            AppTopBar(title = "Games in $genreSlug", navController = navController) // call AppTopBar have button Search
+            SearchBar(title = "Games in $genreSlug", navController = navController) // call AppTopBar have button Search
         }
     ) { padding ->
         LazyColumn(modifier = Modifier.padding(padding)) {

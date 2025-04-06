@@ -12,7 +12,7 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppTopBar(title: String, navController: NavController) {
+fun SearchBar(title: String, navController: NavController) {
     TopAppBar(
         title = { Text(title) },
         actions = {

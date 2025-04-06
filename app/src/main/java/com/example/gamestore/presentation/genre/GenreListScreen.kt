@@ -6,8 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,7 +17,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.gamestore.data.model.Genre
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
-import com.example.gamestore.presentation.utils.AppTopBar
+import com.example.gamestore.presentation.utils.SearchBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +37,7 @@ fun GenreListScreen(
 
     Scaffold(
         topBar = {
-            AppTopBar(title = "Genres", navController = navController) // call AppTopBar have button Search
+            SearchBar(title = "Genres", navController = navController) // call AppTopBar have button Search
         }
     ) { padding ->
         Column(modifier = Modifier
