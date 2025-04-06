@@ -9,14 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.items
 import com.example.gamestore.presentation.search.GlobalSearchBar
 import com.example.gamestore.presentation.game.GameListItem
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.compose.ui.text.style.TextAlign
-
-
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,10 +77,16 @@ fun GameSearchScreen(
                     }
 
                     else -> {
-                        items(pagingItems) { game ->
-                            game?.let {
-                                GameListItem(game = it, onClick = { onGameClick(it.id) })
-                            }
+                        items(
+        count = pagingItems.itemCount,
+        key = pagingItems.itemKey(),
+        contentType = pagingItems.itemContentType(
+            )
+    ) { index ->
+        val item = pagingItems[index]
+        item?.let {
+            GameListItem(game = it, onClick = { onGameClick(it.id) })
+        }
                         }
                     }
                 }

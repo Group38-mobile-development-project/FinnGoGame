@@ -6,7 +6,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.items
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.example.gamestore.data.model.Game
 
 
@@ -25,10 +26,16 @@ fun GameListScreen(
         }
     ) { padding ->
         LazyColumn(contentPadding = padding) {
-            items(pagingItems) { game ->
-                if (game != null) {
-                    GameListItem(game = game, onClick = { onGameClick(game) })
-                }
+            items(
+        count = pagingItems.itemCount,
+        key = pagingItems.itemKey(),
+        contentType = pagingItems.itemContentType(
+            )
+    ) { index ->
+        val item = pagingItems[index]
+        if (item != null) {
+            GameListItem(game = item, onClick = { onGameClick(item) })
+        }
             }
         }
     }

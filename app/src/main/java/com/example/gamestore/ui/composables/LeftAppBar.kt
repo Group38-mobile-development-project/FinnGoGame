@@ -77,7 +77,7 @@ fun LeftAppBar(
                 onClick = { /* Handle shopping cart */ }
             )
             NavigationDrawerItem(
-                label = { Text("WishList") },
+                label = { Text("Favorites") },
                 selected = false,
                 icon = { Icon(Icons.Outlined.Favorite, contentDescription = null) },
                 onClick = { /* Handle wishlist */ }
@@ -96,7 +96,7 @@ fun LeftAppBar(
                 }
             )
 
-            if (userEmail == null) {
+            if (auth.currentUser == null) {
                 // Show Login button if user is not logged in
                 NavigationDrawerItem(
                     label = { Text("Login") },

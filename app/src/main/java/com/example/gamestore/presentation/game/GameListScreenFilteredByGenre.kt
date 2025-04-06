@@ -12,11 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.items
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.example.gamestore.presentation.genre.GenreGameViewModel
 import com.example.gamestore.presentation.utils.AppTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
+//@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameListScreenFilteredByGenre(
     navController: NavController, // add navController
@@ -35,12 +36,18 @@ fun GameListScreenFilteredByGenre(
         }
     ) { padding ->
         LazyColumn(modifier = Modifier.padding(padding)) {
-            items(pagingItems) { game ->
-                if (game != null) {
-                    GameListItem(game = game, onClick = {
-                        onGameClick(game.id)
-                    })
-                }
+            items(
+        count = pagingItems.itemCount,
+        key = pagingItems.itemKey(),
+        contentType = pagingItems.itemContentType(
+            )
+    ) { index ->
+        val item = pagingItems[index]
+        if (item != null) {
+            GameListItem(game = item, onClick = {
+                onGameClick(item.id)
+            })
+        }
             }
         }
     }

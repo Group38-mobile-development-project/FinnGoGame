@@ -10,17 +10,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.gamestore.ui.GameViewModel
 import com.example.gamestore.ui.model.Game
 import com.example.gamestore.presentation.utils.AppTopBar // H add search
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     navController: NavHostController,
@@ -76,7 +77,7 @@ fun MainScreen(
             }
         }
 
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
         // 3. The main vertical list
         Text(
@@ -136,9 +137,11 @@ fun TopRatedGameItem(game: Game) {
         Column {
             // Image
             Image(
-                painter = rememberImagePainter(
-                    data = game.background_image ?: "",
-                    builder = { crossfade(true) }
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(data = game.background_image ?: "").apply(block = fun ImageRequest.Builder.() {
+                            crossfade(true)
+                        }).build()
                 ),
                 contentDescription = game.name,
                 modifier = Modifier
@@ -172,9 +175,11 @@ fun GameItem(game: Game) {
         Column {
             // Image
             Image(
-                painter = rememberImagePainter(
-                    data = game.background_image ?: "",
-                    builder = { crossfade(true) }
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(data = game.background_image ?: "").apply(block = fun ImageRequest.Builder.() {
+                            crossfade(true)
+                        }).build()
                 ),
                 contentDescription = game.name,
                 modifier = Modifier

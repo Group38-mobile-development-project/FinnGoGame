@@ -28,7 +28,7 @@ class FavoritesRepository {
                 onComplete(true)
             }
             .addOnFailureListener { e ->
-                Log.e("FAV_ERROR", "Error adding to favorites", e)
+                Log.w("FAV_ERROR", "Error adding to favorites", e)
                 onComplete(false)
             }
     }

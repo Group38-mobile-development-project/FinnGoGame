@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.gamestore.EmailPasswordActivity
+import com.example.gamestore.GoogleSignInActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 
@@ -32,9 +33,10 @@ fun SettingsScreen(navController: NavController) {
     var showPasswordField by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-
+    var showDeleteDialogEmailUser by remember { mutableStateOf(false) }
+    var showDeleteDialogGoogleUser by remember { mutableStateOf(false) }
     val emailPasswordActivity = EmailPasswordActivity()
+    val googleSignInActivity = GoogleSignInActivity()
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Settings", style = MaterialTheme.typography.headlineMedium)
@@ -114,7 +116,7 @@ fun SettingsScreen(navController: NavController) {
                         trailingIcon = {
                             IconButton(onClick = { showPassword = !showPassword
                                 Toast.makeText(context, if (showPassword) "visible" else "invisible", Toast.LENGTH_SHORT).show()
-                            })  {
+                            }) {
                                 Icon(
                                     imageVector = if (showPassword) Icons.Outlined.CheckCircle else Icons.Filled.CheckCircle,
                                     contentDescription = "Toggle Password Visibility"
@@ -139,62 +141,78 @@ fun SettingsScreen(navController: NavController) {
                         Text("Submit Password Update")
                     }
                 }
-            }
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Delete Account
-            Button(onClick = {
-                showDeleteConfirmation = !showDeleteConfirmation
-                showEmailField = false
-                showPasswordField = false
-            },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
-                Text("Delete Account")
-            }
-            if (showDeleteConfirmation) {
-                OutlinedTextField(
-                    value = currentPassword,
-                    onValueChange = { currentPassword = it },
-                    label = { Text("Enter Current Password") },
-                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { showPassword = !showPassword
-                            Toast.makeText(context, if (showPassword) "visible" else "invisible", Toast.LENGTH_SHORT).show()
-                        }) {
-                            Icon(
-                                imageVector = if (showPassword) Icons.Outlined.CheckCircle else Icons.Filled.CheckCircle,
-                                contentDescription = "Toggle Password Visibility"
-                            )
+                // Delete Account
+                Button(onClick = {
+                    showDeleteConfirmation = !showDeleteConfirmation
+                    showEmailField = false
+                    showPasswordField = false
+                },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
+                    Text("Delete Account")
+                }
+                if (showDeleteConfirmation) {
+                    OutlinedTextField(
+                        value = currentPassword,
+                        onValueChange = { currentPassword = it },
+                        label = { Text("Enter Current Password") },
+                        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { showPassword = !showPassword
+                                Toast.makeText(context, if (showPassword) "visible" else "invisible", Toast.LENGTH_SHORT).show()
+                            }) {
+                                Icon(
+                                    imageVector = if (showPassword) Icons.Outlined.CheckCircle else Icons.Filled.CheckCircle,
+                                    contentDescription = "Toggle Password Visibility"
+                                )
+                            }
                         }
+                    )
+                    Button(
+                        onClick = {
+                            if (currentPassword.isBlank()) {
+                                println("Error: Password cannot be empty")
+                                Toast.makeText(context, "Error: Password cannot be empty", Toast.LENGTH_SHORT).show()
+                            } else {
+                                showDeleteDialogEmailUser = true
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Confirm Delete")
                     }
-                )
-                Button(
-                    onClick = {
-                        if (currentPassword.isBlank()) {
-                            println("Error: Password cannot be empty")
-                            Toast.makeText(context, "Error: Password cannot be empty", Toast.LENGTH_SHORT).show()
-                        } else {
-                            showDeleteDialog = true
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text("Confirm Delete")
+                }
+            }
+            if (isGoogleUser) {
+                // Delete Account button for Google users
+                Text("This operation is sensitive and requires recent authentication. We will let you log in again before trying this request.", style = MaterialTheme.typography.bodyMedium)
+                Button(onClick = {
+                    googleSignInActivity.launchCredentialManager(context,
+                        onSuccess = {
+                            Toast.makeText(context, "Authentication successful", Toast.LENGTH_SHORT).show()
+                            showDeleteDialogGoogleUser = true
+                        },
+                        onFailure = { message ->
+                            Toast.makeText(context, "Authentication failed: $message", Toast.LENGTH_SHORT).show()
+                        })
+                }, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
+                    Text("Delete Account")
                 }
             }
         }
     }
 
-    if (showDeleteDialog) {
+    // Delete account dialog for Email user
+    if (showDeleteDialogEmailUser) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { showDeleteDialogEmailUser = false },
             title = { Text("Confirm Deletion") },
             text = { Text("Are you sure you want to delete your account? This action cannot be undone.") },
             confirmButton = {
                 Button(
                     onClick = {
-                        showDeleteDialog = false
+                        showDeleteDialogEmailUser = false
                         emailPasswordActivity.deleteAccount(context, currentPassword) { success, message ->
                             if (!success) {
                                 println("Error: $message")
@@ -207,7 +225,36 @@ fun SettingsScreen(navController: NavController) {
                 }
             },
             dismissButton = {
-                Button(onClick = { showDeleteDialog = false }) {
+                Button(onClick = { showDeleteDialogEmailUser = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Delete account dialog for Google user
+    if (showDeleteDialogGoogleUser) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialogGoogleUser = false },
+            title = { Text("Confirm Deletion") },
+            text = { Text("Are you sure you want to delete your account? This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        googleSignInActivity.deleteAccountWithGoogle(onSuccess = {
+                            Toast.makeText(context, "Account deleted successfully", Toast.LENGTH_SHORT).show()
+                        }, onFailure = { message ->
+                            Toast.makeText(context, "Account deletion failed: $message", Toast.LENGTH_SHORT).show()
+                        })
+                        showDeleteDialogGoogleUser = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Proceed")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDeleteDialogGoogleUser = false }) {
                     Text("Cancel")
                 }
             }

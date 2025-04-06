@@ -67,6 +67,19 @@ class GoogleSignInActivity {
             }
     }
 
+    fun deleteAccountWithGoogle(onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.delete()?.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Log.d(TAG, "Account successfully deleted")
+                onSuccess()
+            } else {
+                Log.w(TAG, "Failed to delete account: ${task.exception?.message}")
+                onFailure(task.exception?.message ?: "Unknown error")
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "GoogleActivity"
     }

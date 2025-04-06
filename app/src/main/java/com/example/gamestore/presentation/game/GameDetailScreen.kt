@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.ui.layout.ContentScale
+import com.google.firebase.auth.FirebaseAuth
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +43,7 @@ fun GameDetailScreen(gameId: Int) {
     val scope = rememberCoroutineScope()
     var showFullDescription by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val auth = remember { FirebaseAuth.getInstance() }
     var isFavorite by remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(gameId) {
@@ -146,10 +148,17 @@ fun GameDetailScreen(gameId: Int) {
                         storePairs.forEach { (storeName, storeDomain) ->
                             Button(
                                 onClick = {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://$storeDomain"))
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://$storeDomain")
+                                    )
                                     context.startActivity(intent)
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF))
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(
+                                        0xFF007BFF
+                                    )
+                                )
                             ) {
                                 Text(" $storeName", color = Color.White)
                             }
@@ -157,46 +166,57 @@ fun GameDetailScreen(gameId: Int) {
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
-
-                    isFavorite?.let { fav ->
-                        Button(
-                            onClick = {
-                                if (fav) {
-                                    // Remove from favorites
-                                    favoritesRepository.removeFromFavorites(g.id) { success ->
-                                        if (success) {
-                                            isFavorite = false
-                                            Toast.makeText(context, "Removed from favorites", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, "Failed to remove from favorites", Toast.LENGTH_SHORT).show()
+                    //Favorite button shows only if user is logged in
+                    if (auth.currentUser != null) {
+                        isFavorite?.let { fav ->
+                            Button(
+                                onClick = {
+                                    if (fav) {
+                                        // Remove from favorites
+                                        favoritesRepository.removeFromFavorites(g.id) { success ->
+                                            if (success) {
+                                                isFavorite = false
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to remove from favorites",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                    } else {
+                                        // Add to favorites
+                                        favoritesRepository.addToFavourites(g) { success ->
+                                            if (success) {
+                                                isFavorite = true
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to add to favorites",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
                                         }
                                     }
-                                } else {
-                                    // Add to favorites
-                                    favoritesRepository.addToFavourites(g) { success ->
-                                        if (success) {
-                                            isFavorite = true
-                                            Toast.makeText(context, "Added to favorites", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, "Failed to add to favorites", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else Color.Red),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                imageVector = if (fav) Icons.Filled.Favorite else Icons.Outlined.Favorite,
-                                contentDescription = "Favorite",
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (fav) "Remove Favorite" else "Add to Favorites", color = Color.White)
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else Color.Red),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = if (fav) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                    contentDescription = "Favorite",
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    if (fav) "Remove Favorite" else "Add to Favorites",
+                                    color = Color.White
+                                )
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
                 }
             }
         } ?: Box(
