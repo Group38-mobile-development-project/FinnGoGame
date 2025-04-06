@@ -209,7 +209,7 @@ fun GameDetailScreen(gameId: Int) {
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    if (fav) "Remove Favorite" else "Add to Favorites",
+                                    if (fav) "Remove from Favorites" else "Add to Favorites",
                                     color = Color.White
                                 )
                             }

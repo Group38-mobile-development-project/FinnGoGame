@@ -15,7 +15,7 @@ import androidx.paging.compose.itemKey
 import com.example.gamestore.presentation.genre.GenreGameViewModel
 import com.example.gamestore.presentation.utils.SearchBar
 
-//@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameListScreenFilteredByGenre(
     navController: NavController, // add navController

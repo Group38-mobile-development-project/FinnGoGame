@@ -1,9 +1,11 @@
 package com.example.gamestore.data.users
 
 import android.util.Log
+import com.example.gamestore.data.mapper.RawGameMapper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.gamestore.data.model.Game
+import com.example.gamestore.data.network.ApiClient
 
 class FavoritesRepository {
     private val db = FirebaseFirestore.getInstance()
@@ -49,6 +51,15 @@ class FavoritesRepository {
             .delete()
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
+    }
+    suspend fun getGameById(id: Int): Game? {
+        return try {
+            val response = ApiClient.apiService.fetchGameById(id)
+            RawGameMapper.fromDto(response)
+        } catch (e: Exception) {
+            Log.e("FavoritesRepo", "Failed to fetch game $id: ${e.message}")
+            null
+        }
     }
 }
 

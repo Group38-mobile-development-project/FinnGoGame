@@ -23,7 +23,7 @@ fun TopAppBar(
             titleContentColor = MaterialTheme.colorScheme.primary,
         ),
         title = {
-            Text("Store demo")
+            Text("Game Review App demo")
         },
         navigationIcon = {
             IconButton(onClick = {

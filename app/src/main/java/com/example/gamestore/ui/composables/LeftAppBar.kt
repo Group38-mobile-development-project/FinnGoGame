@@ -19,9 +19,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun LeftAppBar(
     onNavigateToHome:() ->Unit,
+    onNavigateToFavorites: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     onNavigateToSignIn: () -> Unit,
     onSignOut: () -> Unit,
-    onNavigateToSettings: () -> Unit,
     drawerState: DrawerState
 ) {
     val auth = remember { FirebaseAuth.getInstance() }
@@ -80,7 +81,12 @@ fun LeftAppBar(
                 label = { Text("Favorites") },
                 selected = false,
                 icon = { Icon(Icons.Outlined.Favorite, contentDescription = null) },
-                onClick = { /* Handle wishlist */ }
+                onClick = {
+                    onNavigateToFavorites()
+                    scope.launch {
+                        drawerState.close()
+                    }
+                }
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

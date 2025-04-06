@@ -11,6 +11,7 @@ import com.example.gamestore.presentation.genre.GenreListScreen
 import com.example.gamestore.presentation.game.GameDetailScreen
 import com.example.gamestore.presentation.game.GameListScreenFilteredByGenre
 import com.example.gamestore.presentation.search.GameSearchScreen
+import com.example.gamestore.ui.screens.FavoritesScreen
 import com.example.gamestore.ui.screens.LoginScreen
 import com.example.gamestore.ui.screens.MainScreen
 import com.example.gamestore.ui.screens.SettingsScreen
@@ -23,14 +24,21 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             MainScreen(navController = navController)
         }
 
-        composable("sign") {
-            LoginScreen(navController = navController)
+        composable("favorites") {
+            FavoritesScreen(navController = navController,
+                onGameClick = { gameId ->
+                    navController.navigate("game_detail/$gameId")
+                }
+            )
         }
 
         composable("settings") {
             SettingsScreen(navController = navController)
         }
 
+        composable("sign") {
+            LoginScreen(navController = navController)
+        }
 
         composable("search") {
             GameSearchScreen(
