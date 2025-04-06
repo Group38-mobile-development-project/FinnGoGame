@@ -42,7 +42,7 @@ android {
 
 dependencies {
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
 
     // When using the BoM, you don't specify versions in Firebase library dependencies
 

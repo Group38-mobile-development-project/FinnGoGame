@@ -3,11 +3,10 @@ package com.example.gamestore.presentation.game
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -25,11 +24,12 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.gamestore.data.model.Game
 import com.example.gamestore.data.repository.GameRepository
+import com.example.gamestore.data.users.FavoritesRepository
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.ui.layout.ContentScale
 
 
@@ -37,14 +37,21 @@ import androidx.compose.ui.layout.ContentScale
 @Composable
 fun GameDetailScreen(gameId: Int) {
     val repository = remember { GameRepository() }
+    val favoritesRepository = remember { FavoritesRepository() }
     var game by remember { mutableStateOf<Game?>(null) }
     val scope = rememberCoroutineScope()
     var showFullDescription by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    var isFavorite by remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(gameId) {
         scope.launch {
             game = repository.getGameById(gameId)
+            game?.let {
+                favoritesRepository.isFavorite(it.id) { result ->
+                    isFavorite = result
+                }
+            }
         }
     }
 
@@ -151,14 +158,42 @@ fun GameDetailScreen(gameId: Int) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    Button(
-                        onClick = { /* Favorite action */ },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Favorite, contentDescription = "Favorite", tint = Color.White)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Favorite", color = Color.White)
+                    isFavorite?.let { fav ->
+                        Button(
+                            onClick = {
+                                if (fav) {
+                                    // Remove from favorites
+                                    favoritesRepository.removeFromFavorites(g.id) { success ->
+                                        if (success) {
+                                            isFavorite = false
+                                            Toast.makeText(context, "Removed from favorites", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Failed to remove from favorites", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    // Add to favorites
+                                    favoritesRepository.addToFavourites(g) { success ->
+                                        if (success) {
+                                            isFavorite = true
+                                            Toast.makeText(context, "Added to favorites", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Failed to add to favorites", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else Color.Red),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = if (fav) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                contentDescription = "Favorite",
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (fav) "Remove Favorite" else "Add to Favorites", color = Color.White)
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
