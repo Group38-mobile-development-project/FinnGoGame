@@ -90,6 +90,9 @@ dependencies {
 
         // For Coil (image loading)
         implementation (libs.coil.kt.coil.compose)
+         //
+        implementation ("androidx.compose.runtime:runtime-livedata:1.6.0") //
+
 
 
     // Material3

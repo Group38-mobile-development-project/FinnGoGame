@@ -1,9 +1,13 @@
+
 package com.example.gamestore.data.mapper
 
 import com.example.gamestore.data.dto.RawGame
 import com.example.gamestore.data.mapper.RawGenreMapper.fromDto as mapGenre
 import com.example.gamestore.data.model.Game
-import kotlin.String
+import com.example.gamestore.data.model.GameRating
+import com.example.gamestore.data.users.RatingRepository
+
+
 
 object RawGameMapper {
 
@@ -25,7 +29,12 @@ object RawGameMapper {
             stores = dto.stores?.map { it.store.name } ?: emptyList(),
             storesDomain = dto.stores?.map { it.store.domain } ?: emptyList(),
             description = dto.description,
-            genres = dto.genres.map { mapGenre(it) }  ?: emptyList() // FIX
+            genres = dto.genres.map { mapGenre(it) }  ?: emptyList(), // FIx
+            gameRating = GameRating(
+                totalRatings = dto.totalRatings,
+                totalRatingValue = dto.averageRating * dto.totalRatings,
+                averageRating = dto.averageRating
+            )
         )
     }
 }

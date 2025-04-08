@@ -17,5 +17,6 @@ data class Game(
     val stores: List<String> = emptyList(),
     val storesDomain: List<String> = emptyList(),
     val description: String = "",
-    val genres: List<Genre> = emptyList()
+    val genres: List<Genre> = emptyList(),
+    val gameRating: GameRating
 )

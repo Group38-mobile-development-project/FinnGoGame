@@ -48,5 +48,7 @@ data class RawGame(
     val description: String = "",
 
     @SerializedName("genres")
-    val genres: List<RawGenre> = emptyList()
+    val genres: List<RawGenre> = emptyList(),
+
+    val addedCount: Int = 0
 )

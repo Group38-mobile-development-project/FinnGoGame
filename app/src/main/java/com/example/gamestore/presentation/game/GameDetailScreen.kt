@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,26 +18,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.gamestore.data.model.Game
 import com.example.gamestore.data.repository.GameRepository
 import com.example.gamestore.data.users.FavoritesRepository
+import com.example.gamestore.data.users.RatingRepository
+import com.example.gamestore.presentation.rating.GameRatingSection
+import com.example.gamestore.presentation.rating.RatingViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.ui.layout.ContentScale
-import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.gamestore.data.model.GameRating
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameDetailScreen(gameId: Int) {
+fun GameDetailScreen(gameId: Int, onRatingUpdated: ((Double, Int) -> Unit)? = null) {
     val repository = remember { GameRepository() }
     val favoritesRepository = remember { FavoritesRepository() }
     var game by remember { mutableStateOf<Game?>(null) }
@@ -45,6 +55,14 @@ fun GameDetailScreen(gameId: Int) {
     val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     var isFavorite by remember { mutableStateOf<Boolean?>(null) }
+
+    val ratingViewModel: RatingViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return RatingViewModel(RatingRepository(FirebaseFirestore.getInstance())) as T
+            }
+        }
+    )
 
     LaunchedEffect(gameId) {
         scope.launch {
@@ -69,6 +87,23 @@ fun GameDetailScreen(gameId: Int) {
             val developersText = g.developers.joinToString(", ")
             val publishersText = g.publishers.joinToString(", ")
             val storePairs = g.stores.zip(g.storesDomain)
+
+            //rating
+//            LaunchedEffect(g.id) {
+////                ratingViewModel.fetchGameRating(g.id.toString())
+//                val userId = auth.currentUser?.uid
+//                if (userId != null) {
+//                    ratingViewModel.checkUserRated(userId, g.id.toString())
+//                }
+//            }
+//rating
+            LaunchedEffect(g.id) {
+                ratingViewModel.fetchGameRating(g.id.toString())
+                val userId = auth.currentUser?.uid
+                if (userId != null) {
+                    ratingViewModel.checkUserRated(userId, g.id.toString())
+                }
+            }
 
             Column(
                 modifier = Modifier
@@ -128,12 +163,14 @@ fun GameDetailScreen(gameId: Int) {
                     Text(publishersText)
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    //
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        repeat((g.averageRating / 1).toInt()) {
+                        repeat((g.averageRating).toInt()) {
                             Icon(Icons.Rounded.Star, contentDescription = null, tint = Color.Yellow)
                         }
-                        Text(" Rating: ${g.averageRating}")
+                        Text(" Rating: ${String.format("%.1f", g.averageRating)}")
                     }
+
 
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -216,7 +253,37 @@ fun GameDetailScreen(gameId: Int) {
                         }
 
                         Spacer(modifier = Modifier.height(32.dp))
+
+                        //rating
+                        val gameRatingState by ratingViewModel.gameRating.observeAsState()
+                        val hasRatedState by ratingViewModel.userHasRated.observeAsState()
+                        val hasRated = hasRatedState?.first ?: false
+                        val previousRating = hasRatedState?.second
+                        val userId = auth.currentUser?.uid
+                        if (userId != null) {
+                            ratingViewModel.checkUserRated(userId, g.id.toString())
+                        }
+
+                        GameRatingSection(
+                            currentRating = previousRating ?: gameRatingState?.averageRating,
+                            enabled = true, //
+                            onRatingSelected = { ratingValue ->
+                                if (!hasRated) {
+                                    val userId = auth.currentUser?.uid ?: return@GameRatingSection
+                                    val gameIdString = g.id.toString()
+                                    ratingViewModel.submitRating(userId, gameIdString, ratingValue)
+                                    Toast.makeText(context, "Thanks for your rating!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    val ratedValue = previousRating?.toInt() ?: 0
+                                    Toast.makeText(context, "You already rated $ratedValue ⭐!", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
                     }
+
+
                 }
             }
         } ?: Box(
