@@ -19,8 +19,10 @@ fun TopAppBar(
 
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary, // Icon color
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary // Action icon color
         ),
         title = {
             Text("Game Review App demo")

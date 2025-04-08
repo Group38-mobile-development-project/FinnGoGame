@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,6 +21,7 @@ import coil.request.ImageRequest
 import com.example.gamestore.ui.GameViewModel
 import com.example.gamestore.ui.model.Game
 import com.example.gamestore.presentation.utils.SearchBar // H add search
+
 
 @Composable
 fun MainScreen(
@@ -52,8 +54,26 @@ fun MainScreen(
 //                .padding(16.dp)
 //        )
 
+
+
+        // "Welcome" and "What would you like to play?" text with specific styling
+        Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp)) {
+            Text(
+                text = "Welcome",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold, // Makes "Welcome" bold
+                color = Color.Black,  // Set color to black
+            )
+            Text(
+                text = "What would you like to play?",
+                fontSize = 20.sp,
+                color = Color.Black,  // Set color to black
+            )
+        }
+
+
         // H add search_ Add top bar here
-        SearchBar(title = "Search", navController = navController)
+         SearchBar(title = "Search for game", navController = navController)
 
 
         // 2. Top-Rated Section

@@ -91,4 +91,16 @@ dependencies {
         // For Coil (image loading)
         implementation (libs.coil.kt.coil.compose)
 
+
+    // Material3
+    implementation ("androidx.compose.material3:material3:1.3.1")
+
+    // Compose UI
+    implementation ("androidx.compose.ui:ui:1.3.0")  // Using Compose version 1.3.x (matching Material3)
+
+    // Other necessary Compose dependencies
+    implementation ("androidx.compose.material:material-icons-extended:1.3.0")
+    implementation ("androidx.compose.runtime:runtime:1.3.0")
+
+
 }
