@@ -1,8 +1,5 @@
-package com.example.gamestore.presentation.game
+package com.example.gamestore.presentation.rating
 
-import androidx.compose.material3.ExperimentalMaterial3Api
-
-package com.example.gamestore.presentation.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,11 +8,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.gamestore.data.model.Game
-import com.example.gamestore.data.model.GameRating // ✅ thêm dòng này
+import com.example.gamestore.data.model.GameRating
 import com.example.gamestore.data.users.RatingRepository
 import kotlinx.coroutines.flow.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 class RatingViewModel(private val repository: RatingRepository) : ViewModel() {
 
     private val _gameRating = MutableLiveData<GameRating?>()
@@ -29,7 +26,20 @@ class RatingViewModel(private val repository: RatingRepository) : ViewModel() {
 
     fun submitRating(userId: String, gameId: String, rating: Double) {
         repository.rateGame(userId, gameId, rating) {
-            if (it) fetchGameRating(gameId)
+            if (it) {
+                fetchGameRating(gameId)
+                checkUserRated(userId, gameId)
+            }
+        }
+    }
+
+
+    private val _userHasRated = MutableLiveData<Pair<Boolean, Double?>>()
+    val userHasRated: LiveData<Pair<Boolean, Double?>> = _userHasRated
+
+    fun checkUserRated(userId: String, gameId: String) {
+        repository.hasUserRated(userId, gameId) { hasRated, rating ->
+            _userHasRated.postValue(Pair(hasRated, rating))
         }
     }
 }

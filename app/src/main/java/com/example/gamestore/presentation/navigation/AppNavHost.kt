@@ -79,5 +79,6 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             val gameId = backStackEntry.arguments?.getInt("gameId") ?: 0
             GameDetailScreen(gameId)
         }
+
     }
 }

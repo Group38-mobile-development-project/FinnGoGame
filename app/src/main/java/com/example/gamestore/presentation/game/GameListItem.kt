@@ -48,9 +48,10 @@ fun GameListItem(
                     repeat((game.averageRating / 1).toInt()) {
                         Icon(Icons.Rounded.Star, contentDescription = null, tint = Color.Yellow)
                     }
-                    Text("Rating:  ${game.averageRating}")
+                    //Text("Rating:  ${game.averageRating}")
+                    Text("Rating: ${String.format("%.1f", game.averageRating)}")
+
                 }
-                //Text(text = "⭐ Rating: ${game.averageRating}", style = MaterialTheme.typography.bodySmall)
                 Text(text = "Released: ${game.releaseDate}", style = MaterialTheme.typography.bodySmall)
             }
         }

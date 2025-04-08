@@ -16,3 +16,4 @@ class GenreGameViewModel(
         .getGamesByGenrePaged(genreSlug)
         .cachedIn(viewModelScope)
 }
+
