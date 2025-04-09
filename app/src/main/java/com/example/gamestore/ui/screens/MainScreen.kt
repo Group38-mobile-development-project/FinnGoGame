@@ -191,11 +191,7 @@ fun TopRatedGameItem(game: Game) {
                     color = Color.White,  // Changed to white
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "Rating: ${game.rating}",
-                    color = Color.White.copy(alpha = 0.9f),  // Lighter white
-                    fontSize = 12.sp
-                )
+
             }
         }
     }
@@ -257,11 +253,7 @@ fun GameItem(game: Game) {
                     maxLines = 2,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                Text(
-                    text = "Rating: ${game.rating}",
-                    color = Color.White.copy(alpha = 0.9f),  // Lighter white
-                    fontSize = 14.sp
-                )
+
             }
         }
     }
