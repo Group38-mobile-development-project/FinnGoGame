@@ -1,6 +1,7 @@
 package com.example.gamestore.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -9,7 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,7 +23,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.gamestore.ui.GameViewModel
 import com.example.gamestore.ui.model.Game
-import com.example.gamestore.presentation.utils.SearchBar // H add search
+import com.example.gamestore.presentation.utils.SearchBar // Add search bar here
 
 
 @Composable
@@ -41,21 +44,6 @@ fun MainScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
 
-        //// 1. Search Bar
-//        OutlinedTextField(
-//            value = searchQuery,
-//            onValueChange = {
-//                searchQuery = it
-//                viewModel.search(searchQuery) // Trigger search as user types
-//            },
-//            label = { Text("Search Games...") },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        )
-
-
-
         // "Welcome" and "What would you like to play?" text with specific styling
         Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp)) {
             Text(
@@ -71,17 +59,17 @@ fun MainScreen(
             )
         }
 
+        // Search bar
+        SearchBar(title = "Search for game", navController = navController)
 
-        // H add search_ Add top bar here
-         SearchBar(title = "Search for game", navController = navController)
-
-
-        // 2. Top-Rated Section
+        // 1. Top-Rated Section
         Text(
             text = "Top Rated Games",
-            fontSize = 20.sp,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,  // Bold the title for better emphasis
+            color = Color.Black,
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
         )
 
         LazyRow(
@@ -98,15 +86,17 @@ fun MainScreen(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // 3. The main vertical list
+        // 2. All Games Section
         Text(
             text = "All Games",
-            fontSize = 20.sp,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,  // Bold the title for better emphasis
+            color = Color.Black,
+            modifier = Modifier
+                .padding(start = 16.dp, bottom = 8.dp)
         )
 
-        // Display loading / error / data
+        // Display loading / error / data for All Games section
         when {
             isLoading -> {
                 Box(
@@ -135,7 +125,7 @@ fun MainScreen(
                         .padding(horizontal = 16.dp)
                 ) {
                     items(games) { game ->
-                        GameItem(game = game)
+                        GameItem(game = game)  // Ensure images are loaded here
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
@@ -150,34 +140,60 @@ fun TopRatedGameItem(game: Game) {
         modifier = Modifier
             .width(160.dp)
             .fillMaxHeight(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = MaterialTheme.shapes.medium
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column {
-            // Image
+        Box(modifier = Modifier.fillMaxSize()) {
+            val imageUrl = game.background_image ?: "https://via.placeholder.com/150"
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
-                        .data(data = game.background_image ?: "").apply(block = fun ImageRequest.Builder.() {
+                        .data(data = imageUrl)
+                        .apply(block = fun ImageRequest.Builder.() {
                             crossfade(true)
                         }).build()
                 ),
                 contentDescription = game.name,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
+                    .fillMaxSize()
+                    .padding(0.dp),
+                contentScale = ContentScale.Crop
             )
-            // Title & rating
-            Column(modifier = Modifier.padding(8.dp)) {
+
+            // Semi-transparent gradient overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)  // Shorter overlay for smaller cards
+                    .align(Alignment.BottomStart)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f)
+                            ),
+                            startY = 0f,
+                            endY = 60f
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.dp)
+            ) {
                 Text(
                     text = game.name,
                     fontSize = 14.sp,
                     maxLines = 2,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White,  // Changed to white
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Rating: ${game.rating}",
-                    color = Color.Gray,
+                    color = Color.White.copy(alpha = 0.9f),  // Lighter white
                     fontSize = 12.sp
                 )
             }
@@ -188,34 +204,63 @@ fun TopRatedGameItem(game: Game) {
 @Composable
 fun GameItem(game: Game) {
     Card(
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = MaterialTheme.shapes.medium
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column {
-            // Image
+        Box(modifier = Modifier.fillMaxSize()) {
+            val imageUrl = game.background_image ?: "https://via.placeholder.com/150"
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
-                        .data(data = game.background_image ?: "").apply(block = fun ImageRequest.Builder.() {
+                        .data(imageUrl)
+                        .apply(block = fun ImageRequest.Builder.() {
                             crossfade(true)
                         }).build()
                 ),
                 contentDescription = game.name,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            // Semi-transparent gradient overlay at the bottom
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(100.dp)
+                    .align(Alignment.BottomStart)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f)
+                            ),
+                            startY = 0f,
+                            endY = 100f
+                        )
+                    )
             )
-            // Info
-            Column(modifier = Modifier.padding(8.dp)) {
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
+            ) {
                 Text(
                     text = game.name,
                     fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White,  // Changed to white
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = "Rating: ${game.rating}",
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 4.dp)
+                    color = Color.White.copy(alpha = 0.9f),  // Lighter white
+                    fontSize = 14.sp
                 )
             }
         }
