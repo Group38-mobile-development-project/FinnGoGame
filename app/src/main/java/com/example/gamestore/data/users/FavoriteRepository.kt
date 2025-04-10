@@ -7,13 +7,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.gamestore.data.model.Game
 import com.example.gamestore.data.network.ApiClient
 
-class FavoritesRepository {
+class FavoriteRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    fun addToFavourites(game: Game, onComplete: (Boolean) -> Unit) {
+    fun addToFavorites(game: Game, onComplete: (Boolean) -> Unit) {
         val userId = auth.currentUser?.uid ?: return onComplete(false)
-
         val favGameData = mapOf(
             "id" to game.id,
             "title" to game.title,

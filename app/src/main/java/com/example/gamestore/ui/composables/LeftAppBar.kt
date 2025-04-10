@@ -77,6 +77,7 @@ fun LeftAppBar(
                 icon = { Icon(Icons.Outlined.ShoppingCart, contentDescription = null) },
                 onClick = { /* Handle shopping cart */ }
             )
+            if (auth.currentUser != null){
             NavigationDrawerItem(
                 label = { Text("Favorites") },
                 selected = false,
@@ -87,7 +88,7 @@ fun LeftAppBar(
                         drawerState.close()
                     }
                 }
-            )
+            ) }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 

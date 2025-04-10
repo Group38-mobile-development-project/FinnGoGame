@@ -3,7 +3,7 @@ package com.example.gamestore.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gamestore.data.model.Game
-import com.example.gamestore.data.users.FavoritesRepository
+import com.example.gamestore.data.users.FavoriteRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,7 @@ class FavoritesViewModel : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
-    private val repository = FavoritesRepository()
+    private val repository = FavoriteRepository()
 
     init {
         fetchFavoriteGames()

@@ -37,7 +37,7 @@ fun GenreListScreen(
 
     Scaffold(
         topBar = {
-            SearchBar(title = "Genres", navController = navController) // call AppTopBar have button Search
+            SearchBar(title = "Genres", navController = navController) // call SearchBar has button Search
         }
     ) { padding ->
         Column(modifier = Modifier

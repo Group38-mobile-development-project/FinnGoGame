@@ -30,7 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.gamestore.data.model.Game
 import com.example.gamestore.data.repository.GameRepository
-import com.example.gamestore.data.users.FavoritesRepository
+import com.example.gamestore.data.users.FavoriteRepository
 import com.example.gamestore.data.users.RatingRepository
 import com.example.gamestore.presentation.rating.GameRatingSection
 import com.example.gamestore.presentation.rating.RatingViewModel
@@ -45,8 +45,7 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
-import com.example.gamestore.data.model.GameRating
-
+import com.example.gamestore.ui.ReviewViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +55,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                       onRatingUpdated: ((Double, Int) -> Unit)? = null) {
 
     val repository = remember { GameRepository() }
-    val favoritesRepository = remember { FavoritesRepository() }
+    val favoriteRepository = remember { FavoriteRepository() }
     var game by remember { mutableStateOf<Game?>(null) }
     val scope = rememberCoroutineScope()
     var showFullDescription by remember { mutableStateOf(false) }
@@ -77,7 +76,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
         scope.launch {
             game = repository.getGameById(gameId)
             game?.let {
-                favoritesRepository.isFavorite(it.id) { result ->
+                favoriteRepository.isFavorite(it.id) { result ->
                     isFavorite = result
                 }
             }
@@ -243,7 +242,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                 onClick = {
                                     if (fav) {
                                         // Remove from favorites
-                                        favoritesRepository.removeFromFavorites(g.id) { success ->
+                                        favoriteRepository.removeFromFavorites(g.id) { success ->
                                             if (success) {
                                                 isFavorite = false
                                             } else {
@@ -256,7 +255,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                         }
                                     } else {
                                         // Add to favorites
-                                        favoritesRepository.addToFavourites(g) { success ->
+                                        favoriteRepository.addToFavorites(g) { success ->
                                             if (success) {
                                                 isFavorite = true
                                             } else {
@@ -313,10 +312,45 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                             }
 
                         )
+
                         Spacer(modifier = Modifier.height(32.dp))
+
+                        val reviewViewModel: ReviewViewModel = viewModel()
+                        var reviewText by remember { mutableStateOf("") }
+                        Text("Write a Review", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        OutlinedTextField(
+                            value = reviewText,
+                            onValueChange = { reviewText = it },
+                            placeholder = { Text("Type your thoughts here...") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                            singleLine = false,
+                            maxLines = 5
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = {
+                                if (reviewText.isNotBlank()) {
+                                    reviewViewModel.submitReview(g, reviewText) { success ->
+                                        if (success) {
+                                            Toast.makeText(context, "Review submitted!", Toast.LENGTH_SHORT).show()
+                                            reviewText = ""
+                                        } else {
+                                            Toast.makeText(context, "Failed to submit review", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Review cannot be empty", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Submit")
+                        }
                     }
-
-
                 }
             }
         } ?: Box(
