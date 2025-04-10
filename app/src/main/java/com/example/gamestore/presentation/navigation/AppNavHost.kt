@@ -76,8 +76,9 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             route = "game_detail/{gameId}",
             arguments = listOf(navArgument("gameId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val gameId = backStackEntry.arguments?.getInt("gameId") ?: 0
-            GameDetailScreen(gameId)
+
+            GameDetailScreen(navController = navController,
+            gameId = backStackEntry.arguments?.getInt("gameId") ?: 0)
         }
 
     }

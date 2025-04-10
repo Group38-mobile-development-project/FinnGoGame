@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -39,14 +40,21 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavHostController
 import com.example.gamestore.data.model.GameRating
 
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameDetailScreen(gameId: Int, onRatingUpdated: ((Double, Int) -> Unit)? = null) {
+fun GameDetailScreen( navController: NavHostController,  // Add NavController parameter
+                      gameId: Int,
+                      onRatingUpdated: ((Double, Int) -> Unit)? = null) {
+
     val repository = remember { GameRepository() }
     val favoritesRepository = remember { FavoritesRepository() }
     var game by remember { mutableStateOf<Game?>(null) }
@@ -55,6 +63,7 @@ fun GameDetailScreen(gameId: Int, onRatingUpdated: ((Double, Int) -> Unit)? = nu
     val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     var isFavorite by remember { mutableStateOf<Boolean?>(null) }
+
 
     val ratingViewModel: RatingViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -76,9 +85,8 @@ fun GameDetailScreen(gameId: Int, onRatingUpdated: ((Double, Int) -> Unit)? = nu
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(text = game?.title ?: "Loading...") })
-        }
+
+
     ) { padding ->
         game?.let { g ->
             val painter = rememberAsyncImagePainter(model = g.imageUrl)
@@ -108,21 +116,46 @@ fun GameDetailScreen(gameId: Int, onRatingUpdated: ((Double, Int) -> Unit)? = nu
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .verticalScroll(rememberScrollState())
             ) {
-                Image(
-                    painter = painter,
-                    contentDescription = g.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(240.dp)
-                        .clip(MaterialTheme.shapes.medium),
-                    contentScale = ContentScale.Crop
-                )
+                Box {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = g.imageUrl),
+                        contentDescription = g.title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp),
+                        contentScale = ContentScale.Crop
+                    )
 
+                    // Back button positioned on top of the image
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.TopStart)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.4f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Back",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = g.title, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = g.title,
+                        fontSize = 27.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 0.dp),  // Optional vertical padding
+                        textAlign = TextAlign.Center
+                        )
                     Spacer(modifier = Modifier.height(8.dp))
 
                     val maxLines = if (showFullDescription) Int.MAX_VALUE else 4

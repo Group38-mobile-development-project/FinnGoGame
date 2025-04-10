@@ -39,8 +39,10 @@ fun GameListScreenFilteredByGenre(
     ) { index ->
         val item = pagingItems[index]
         if (item != null) {
-            GameListItem(game = item, onClick = {
-                onGameClick(item.id)
+            GameListItem(game = item,
+                onClick = {
+                    // Navigate directly using navController
+                    navController.navigate("game_detail/${item.id}")
             })
         }
             }
