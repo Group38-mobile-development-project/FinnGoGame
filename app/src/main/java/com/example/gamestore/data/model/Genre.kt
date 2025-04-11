@@ -1,4 +1,3 @@
-
 package com.example.gamestore.data.model
 
 data class Genre(

@@ -71,6 +71,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation (libs.androidx.lifecycle.livedata.ktx)
 
     //api
     implementation(libs.retrofit)
@@ -91,19 +92,17 @@ dependencies {
         // For Coil (image loading)
         implementation (libs.coil.kt.coil.compose)
          //
-        implementation ("androidx.compose.runtime:runtime-livedata:1.6.0") //
-
-
+        implementation (libs.androidx.runtime.livedata) //
 
     // Material3
-    implementation ("androidx.compose.material3:material3:1.3.1")
+    implementation (libs.material3)
 
     // Compose UI
-    implementation ("androidx.compose.ui:ui:1.3.0")  // Using Compose version 1.3.x (matching Material3)
+    implementation (libs.ui)  // Using Compose version 1.3.x (matching Material3)
 
     // Other necessary Compose dependencies
-    implementation ("androidx.compose.material:material-icons-extended:1.3.0")
-    implementation ("androidx.compose.runtime:runtime:1.3.0")
+    implementation (libs.androidx.material.icons.extended)
+    implementation (libs.androidx.runtime)
 
 
 }

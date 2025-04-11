@@ -4,6 +4,7 @@ package com.example.gamestore.presentation.game
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import java.util.Locale
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,7 +18,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -42,27 +42,29 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
+import com.example.gamestore.data.repository.ReviewRepository
 import com.example.gamestore.ui.ReviewViewModel
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameDetailScreen( navController: NavHostController,  // Add NavController parameter
                       gameId: Int,
                       onRatingUpdated: ((Double, Int) -> Unit)? = null) {
-
-    val repository = remember { GameRepository() }
-    val favoriteRepository = remember { FavoriteRepository() }
-    var game by remember { mutableStateOf<Game?>(null) }
     val scope = rememberCoroutineScope()
+    var game by remember { mutableStateOf<Game?>(null) }
+    var isFavorite by remember { mutableStateOf<Boolean?>(null) }
     var showFullDescription by remember { mutableStateOf(false) }
+    var reviewContent by remember { mutableStateOf("") }
     val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
-    var isFavorite by remember { mutableStateOf<Boolean?>(null) }
-
+    val currentUser = auth.currentUser
+    val userId = currentUser?.uid
+    val favoriteRepository = remember { FavoriteRepository() }
+    val gameRepository = remember { GameRepository() }
 
     val ratingViewModel: RatingViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -71,22 +73,26 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
             }
         }
     )
+    val reviewViewModel: ReviewViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return ReviewViewModel(ReviewRepository()) as T
+        }
+    })
+    val reviews by reviewViewModel.reviews.collectAsState()
 
     LaunchedEffect(gameId) {
         scope.launch {
-            game = repository.getGameById(gameId)
-            game?.let {
-                favoriteRepository.isFavorite(it.id) { result ->
-                    isFavorite = result
-                }
+            game = gameRepository.getGameById(gameId)
+            game?.let { g ->
+                favoriteRepository.isFavorite(g.id) { isFav -> isFavorite = isFav }
+                reviewViewModel.fetchReviews(g.id)
+                userId?.let { ratingViewModel.checkUserRated(it, g.id.toString()) }
+                ratingViewModel.fetchGameRating(g.id.toString())
             }
         }
     }
 
-    Scaffold(
-
-
-    ) { padding ->
+    Scaffold { padding ->
         game?.let { g ->
             val painter = rememberAsyncImagePainter(model = g.imageUrl)
             val genresText = g.genres.joinToString(", ") { it.title }
@@ -106,7 +112,6 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
 //rating
             LaunchedEffect(g.id) {
                 ratingViewModel.fetchGameRating(g.id.toString())
-                val userId = auth.currentUser?.uid
                 if (userId != null) {
                     ratingViewModel.checkUserRated(userId, g.id.toString())
                 }
@@ -200,7 +205,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         repeat((g.averageRating).toInt()) {
                             Icon(Icons.Rounded.Star, contentDescription = null, tint = Color.Yellow)
                         }
-                        Text(" Rating: ${String.format("%.1f", g.averageRating)}")
+                        Text(" Rating: ${String.format(Locale.getDefault(), "%.1f", g.averageRating)}")
                     }
 
 
@@ -291,7 +296,6 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         val hasRatedState by ratingViewModel.userHasRated.observeAsState()
                         val hasRated = hasRatedState?.first ?: false
                         val previousRating = hasRatedState?.second
-                        val userId = auth.currentUser?.uid
                         if (userId != null) {
                             ratingViewModel.checkUserRated(userId, g.id.toString())
                         }
@@ -301,9 +305,9 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                             enabled = true, //
                             onRatingSelected = { ratingValue ->
                                 if (!hasRated) {
-                                    val userId = auth.currentUser?.uid ?: return@GameRatingSection
+                                    val userIdCheck = auth.currentUser?.uid ?: return@GameRatingSection
                                     val gameIdString = g.id.toString()
-                                    ratingViewModel.submitRating(userId, gameIdString, ratingValue)
+                                    ratingViewModel.submitRating(userIdCheck, gameIdString, ratingValue)
                                     Toast.makeText(context, "Thanks for your rating!", Toast.LENGTH_SHORT).show()
                                 } else {
                                     val ratedValue = previousRating?.toInt() ?: 0
@@ -313,42 +317,42 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
 
                         )
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                        val reviewViewModel: ReviewViewModel = viewModel()
-                        var reviewText by remember { mutableStateOf("") }
-                        Text("Write a Review", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        OutlinedTextField(
-                            value = reviewText,
-                            onValueChange = { reviewText = it },
-                            placeholder = { Text("Type your thoughts here...") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
-                            singleLine = false,
-                            maxLines = 5
+                        ReviewInputSection(
+                            reviewContent = reviewContent,
+                            onContentChange = { reviewContent = it },
+                            onSubmit = {
+                                reviewViewModel.submitReview(g.id, reviewContent)
+                                reviewContent = ""
+                            }
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        Button(
-                            onClick = {
-                                if (reviewText.isNotBlank()) {
-                                    reviewViewModel.submitReview(g, reviewText) { success ->
-                                        if (success) {
-                                            Toast.makeText(context, "Review submitted!", Toast.LENGTH_SHORT).show()
-                                            reviewText = ""
-                                        } else {
-                                            Toast.makeText(context, "Failed to submit review", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                                } else {
-                                    Toast.makeText(context, "Review cannot be empty", Toast.LENGTH_SHORT).show()
+                        reviews.forEach { review ->
+                            // Track the upvote and downvote states for each review
+                            var hasUpvoted by remember { mutableStateOf(false) }
+                            var hasDownvoted by remember { mutableStateOf(false) }
+                            // Fetch upvote/downvote status when the review is first displayed
+                            LaunchedEffect(review.id) {
+                                reviewViewModel.hasUpvoted(review.gameId, review.id, userId.toString()) { upvoted ->
+                                    hasUpvoted = upvoted
                                 }
-                            },
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text("Submit")
+                                reviewViewModel.hasDownvoted(review.gameId, review.id, userId.toString()) { downvoted ->
+                                    hasDownvoted = downvoted
+                                }
+                            }
+                            ReviewCard(
+                                review = review,
+                                isOwn = review.userId == userId, // Compare user IDs to check if it's the current user's review
+                                onUpdate = { updatedContent -> reviewViewModel.updateReview(review.gameId, review.id, updatedContent) },
+                                onDelete = { reviewViewModel.deleteReview(review.gameId, review.id) },  // Delete review logic
+                                onUpvote = { reviewViewModel.voteReview(review.gameId, review.id, upvote = true) },
+                                onDownvote = { reviewViewModel.voteReview(review.gameId, review.id, upvote = false) },
+                                hasUpvoted = hasUpvoted,
+                                hasDownvoted = hasDownvoted
+                            )
                         }
                     }
                 }
@@ -360,6 +364,101 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
+        }
+    }
+}
+
+@Composable
+fun ReviewInputSection(
+    reviewContent: String,
+    onContentChange: (String) -> Unit,
+    onSubmit: () -> Unit
+) {
+    Text("Write a Review", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+    OutlinedTextField(
+        value = reviewContent,
+        onValueChange = onContentChange,
+        label = { Text("Your review") },
+        modifier = Modifier.fillMaxWidth()
+    )
+    Button(onClick = onSubmit, modifier = Modifier.padding(top = 8.dp)) {
+        Text("Submit Review")
+    }
+}
+
+@Composable
+fun ReviewCard(
+    review: com.example.gamestore.data.model.Review,
+    isOwn: Boolean,
+    onUpdate: (String) -> Unit,
+    onDelete: () -> Unit,  // Add a parameter for the delete action
+    onUpvote: () -> Unit,
+    onDownvote: () -> Unit,
+    hasUpvoted: Boolean,
+    hasDownvoted: Boolean
+) {
+    var editing by remember { mutableStateOf(false) }
+    var updatedContent by remember { mutableStateOf(review.content) }
+
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 4.dp)) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(review.userEmail, fontWeight = FontWeight.Bold)
+            if (editing) {
+                OutlinedTextField(value = updatedContent, onValueChange = { updatedContent = it }, modifier = Modifier.fillMaxWidth())
+                Row {
+                    Button(onClick = {
+                        onUpdate(updatedContent)
+                        editing = false
+                    }) { Text("Save") }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { editing = false }) { Text("Cancel") }
+                }
+            } else {
+                Text(review.content)
+                if (isOwn) {
+                    Row {
+                        TextButton(onClick = { editing = true }) { Text("Edit") }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = onDelete) { Text("Delete") }  // Add the delete button
+                    }
+                }
+            }
+            Row {
+                // Upvote button
+                IconButton(
+                    onClick = {
+                        onUpvote()
+                    },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowUpward,
+                        contentDescription = "Upvote",
+                        tint = if (hasUpvoted) Color.Green else Color.Gray,
+                    )
+                }
+                Text(text = "${review.upvotes}", modifier = Modifier.align(Alignment.CenterVertically))
+                // Downvote button
+                IconButton(
+                    onClick = {
+                        onDownvote()
+                    },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowDownward,
+                        contentDescription = "Downvote",
+                        tint = if (hasDownvoted) Color.Red else Color.Gray
+                    )
+                }
+                Text(text = "${review.downvotes}", modifier = Modifier.align(Alignment.CenterVertically))
+            }
+            // Display replies
+            review.replies.forEach { reply ->
+                Text("- ${reply.userId.take(6)}: ${reply.content}", modifier = Modifier.padding(start = 8.dp))
+            }
         }
     }
 }
