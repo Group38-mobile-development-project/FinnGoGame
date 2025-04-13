@@ -7,26 +7,38 @@ import com.example.gamestore.data.model.Game
 import android.util.Log
 import com.example.gamestore.data.network.GameApi
 
-
 class PlatformPagingSource(
-    private val api: GameApi,
+    private val apiService: GameApi,
     private val platformSlug: String
 ) : PagingSource<Int, Game>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Game> {
         val page = params.key ?: 1
+        val pageSize = params.loadSize
+
         return try {
-            val response = api.fetchGamesByPlatform(platformSlug, page)
-            val games = response.results.map { RawGameMapper.fromDto(it) }
+            val response = apiService.fetchGamesByPlatform(
+                platformSlug = platformSlug,
+                page = page,
+                pageSize = pageSize
+            )
+            val mappedGames = response.results.map { RawGameMapper.fromDto(it) }
+
+            //fixbug
+            //Log.d("PLATFORM_PAGING", "Loaded page $page with ${mappedGames.size} games for platform '$platformSlug'")
+
             LoadResult.Page(
-                data = games,
+                data = mappedGames,
                 prevKey = if (page == 1) null else page - 1,
-                nextKey = if (games.isEmpty()) null else page + 1
+                nextKey = if (mappedGames.isEmpty()) null else page + 1
             )
         } catch (e: Exception) {
+            Log.e("PLATFORM_PAGING", "Error: ${e.message}")
             LoadResult.Error(e)
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Int, Game>): Int? = null
+    override fun getRefreshKey(state: PagingState<Int, Game>): Int? {
+        return state.anchorPosition
+    }
 }

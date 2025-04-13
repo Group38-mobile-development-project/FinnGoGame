@@ -14,7 +14,8 @@ class GameSearchPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Game> {
         return try {
             val page = params.key ?: 1
-            val response = api.searchGames(query = query, page = page)
+            val pageSize = params.loadSize
+            val response = api.searchGames(query = query, page = page, pageSize = pageSize)
             val games = response.results.map { RawGameMapper.fromDto(it) }
 
             LoadResult.Page(

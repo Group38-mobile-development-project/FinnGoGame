@@ -24,7 +24,7 @@ class GenrePagingSource(
             )
             val mappedGames = response.results.map { RawGameMapper.fromDto(it) }
 
-            Log.d("GENRE_PAGING", "Loaded page $page with ${mappedGames.size} games for genre '$genreSlug'")
+            //Log.d("GENRE_PAGING", "Loaded page $page with ${mappedGames.size} games for genre '$genreSlug'")
 
             LoadResult.Page(
                 data = mappedGames,

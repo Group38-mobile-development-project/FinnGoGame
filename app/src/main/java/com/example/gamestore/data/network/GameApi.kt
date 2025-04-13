@@ -34,7 +34,8 @@ interface GameApi {
     @GET("games") // add
     suspend fun searchGames(
         @Query("search") query: String,
-        @Query("page") page: Int
+        @Query("page") page: Int,
+        @Query("page_size") pageSize: Int = 20,
     ): GameListResponse
 
     // Additional: fetch with sorting, e.g. &ordering=-rating for top rated //merge code Maryam
@@ -50,7 +51,7 @@ interface GameApi {
 
     @GET("games")
     suspend fun fetchGamesByPlatform(
-        @Query("platforms") platformSlug: String,
+        @Query("platform") platformSlug: String,
         @Query("page") page: Int,
         @Query("page_size") pageSize: Int = 20
     ): GameListResponse

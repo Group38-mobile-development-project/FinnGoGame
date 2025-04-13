@@ -19,7 +19,7 @@ class GamePagingSource(
             val mappedGames = response.results.map { RawGameMapper.fromDto(it) }
 
             // debug paging
-            Log.d("PAGING", "Loaded page: $page, items: ${mappedGames.size}")
+           // Log.d("PAGING", "Loaded page: $page, items: ${mappedGames.size}")
             LoadResult.Page(
                 data = mappedGames,
                 prevKey = if (page == 1) null else page - 1,
