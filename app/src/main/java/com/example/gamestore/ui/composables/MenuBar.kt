@@ -11,7 +11,8 @@ fun MenuDropdown(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     onNavigateToHome: () -> Unit,
-    onNavigateToGenre: () -> Unit
+    onNavigateToGenre: () -> Unit,
+    onNavigateToPlatform: () -> Unit
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -33,6 +34,16 @@ fun MenuDropdown(
             onClick = {
                 onDismissRequest()
                 onNavigateToGenre()
+            },
+            leadingIcon = {
+                Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null)
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Platform") },
+            onClick = {
+                onDismissRequest()
+                onNavigateToPlatform()
             },
             leadingIcon = {
                 Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null)

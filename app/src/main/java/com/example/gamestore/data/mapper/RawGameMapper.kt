@@ -16,8 +16,10 @@ object RawGameMapper {
             id = dto.id,
             slug = dto.slug,
             title = dto.title,
-            releaseDate = dto.releaseDate,
-            imageUrl = dto.imageUrl,
+            //releaseDate = dto.releaseDate,
+            //imageUrl = dto.imageUrl,
+            releaseDate = dto.releaseDate ?: "N/A",
+            imageUrl = dto.imageUrl.ifBlank { "https://via.placeholder.com/150" }, //merge code
             averageRating = dto.averageRating,
             topRating = dto.topRating,
             totalRatings = dto.totalRatings,

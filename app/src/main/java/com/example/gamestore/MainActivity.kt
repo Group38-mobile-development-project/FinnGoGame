@@ -65,6 +65,9 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
                     },
                     onNavigateToGenre = {
                         navController.navigate("genre_list")
+                    },
+                    onNavigateToPlatform = {
+                        navController.navigate("platform_list")
                     }
                 )
             },
