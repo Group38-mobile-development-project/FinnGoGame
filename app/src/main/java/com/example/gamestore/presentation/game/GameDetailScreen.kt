@@ -40,13 +40,22 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
 import com.example.gamestore.data.model.GameRating
-
+import androidx.compose.material.icons.filled.Computer
+import androidx.compose.material.icons.filled.VideogameAsset
+import androidx.compose.material.icons.filled.Gamepad
+import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.StarOutline
+import com.example.gamestore.ui.theme.DeepBlue
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -117,8 +126,12 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+
             ) {
+
+                // Game Image
                 Box {
+
                     Image(
                         painter = rememberAsyncImagePainter(model = g.imageUrl),
                         contentDescription = g.title,
@@ -132,7 +145,6 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                     IconButton(
                         onClick = { navController.popBackStack() },
                         modifier = Modifier
-                            .padding(16.dp)
                             .align(Alignment.TopStart)
                             .background(
                                 color = Color.Black.copy(alpha = 0.4f),
@@ -147,75 +159,150 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         )
                     }
                 }
+
+                // Game Title
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = g.title,
+                    Text(
+                        text = g.title,
                         fontSize = 27.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 0.dp),  // Optional vertical padding
                         textAlign = TextAlign.Center
-                        )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    val maxLines = if (showFullDescription) Int.MAX_VALUE else 4
-                    Text(
-                        text = g.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = maxLines
                     )
-                    if (!showFullDescription) {
-                        TextButton(onClick = { showFullDescription = true }) {
-                            Text("Read more")
+
+
+
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val maxLines = if (showFullDescription) Int.MAX_VALUE else 4
+                        Text(
+                            text = g.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = maxLines
+                        )
+                        if (!showFullDescription) {
+                            TextButton(onClick = { showFullDescription = true }) {
+                                Text("Read more")
+                            }
                         }
-                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(vertical = 6.dp)  // Adjust padding as needed
+                            .height(1.dp),  // Set thickness to 1 dp for a thinner divider
+                        color = Color.LightGray  // Light gray color for the divider
+                    )
+
+
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Platforms", fontWeight = FontWeight.Bold)
-                            Text(platformsText)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Genre", fontWeight = FontWeight.Bold)
-                            Text(genresText)
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        // Title for the information section
+                        Text(
+                            text = "Information",  // "Information" text at the top
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        // Row containing Platforms, Genre, Release date, Developer, etc.
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Platforms", fontWeight = FontWeight.Bold)
+                                Text(platformsText)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Genre", fontWeight = FontWeight.Bold)
+                                Text(genresText)
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Release date", fontWeight = FontWeight.Bold)
+                                Text(g.releaseDate)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Developer", fontWeight = FontWeight.Bold)
+                                Text(developersText)
+                            }
                         }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Release date", fontWeight = FontWeight.Bold)
-                            Text(g.releaseDate)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Developer", fontWeight = FontWeight.Bold)
-                            Text(developersText)
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text("Publisher", fontWeight = FontWeight.Bold)
+                        Text(publishersText)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween // Space out the content between the left and right sides
+                        ) {
+                            // Left side: Rating number with "Rating" label above it
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = "Rating", // Label above the rating number
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                                Text(
+                                    text = String.format("%.1f", g.averageRating), // Display the rating number
+                                    fontSize = 30.sp, // Make it big
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black // Black color for the rating number
+                                )
+                            }
+
+                            // Right side: Rating stars in black
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                repeat((g.averageRating).toInt()) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Star,
+                                        contentDescription = null,
+                                        tint = Color.Black,  // Black color for the stars
+                                        modifier = Modifier.size(35.dp) // Size of the stars
+                                    )
+                                }
+                                // Optionally handle partial stars
+                                if (g.averageRating % 1 != 0.0) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Star,
+                                        contentDescription = null,
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(35.dp) // Size of the partial star
+                                    )
+                                }
+                            }
                         }
+
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text("Publisher", fontWeight = FontWeight.Bold)
-                    Text(publishersText)
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    //
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        repeat((g.averageRating).toInt()) {
-                            Icon(Icons.Rounded.Star, contentDescription = null, tint = Color.Yellow)
-                        }
-                        Text(" Rating: ${String.format("%.1f", g.averageRating)}")
-                    }
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(vertical = 6.dp)  // Adjust padding as needed
+                            .height(1.dp),  // Set thickness to 1 dp for a thinner divider
+                        color = Color.LightGray  // Light gray color for the divider
+                    )
 
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    //store
+                    // Store section
                     Text("Buy on", fontWeight = FontWeight.Bold)
-                    @OptIn(ExperimentalLayoutApi::class)
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),  // Add some padding if needed
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)  // Space between the buttons
                     ) {
-                        storePairs.forEach { (storeName, storeDomain) ->
+                        items(storePairs) { (storeName, storeDomain) ->
                             Button(
                                 onClick = {
                                     val intent = Intent(
@@ -225,107 +312,138 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                     context.startActivity(intent)
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(
-                                        0xFF007BFF
-                                    )
-                                )
+                                    containerColor = Color(0xFF87CEFA) // Button color
+                                ),
+                                modifier = Modifier
+                                    .height(40.dp)  // Adjust the height for a more rectangular button
+                                    .clip(RoundedCornerShape(1.dp))  // Slightly rounded corners to match the screenshot
                             ) {
                                 Text(" $storeName", color = Color.White)
                             }
                         }
                     }
 
+
                     Spacer(modifier = Modifier.height(20.dp))
-                    //Favorite button shows only if user is logged in
-                    if (auth.currentUser != null) {
-                        isFavorite?.let { fav ->
-                            Button(
-                                onClick = {
-                                    if (fav) {
-                                        // Remove from favorites
-                                        favoritesRepository.removeFromFavorites(g.id) { success ->
-                                            if (success) {
-                                                isFavorite = false
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Failed to remove from favorites",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(vertical = 6.dp)  // Adjust padding as needed
+                            .height(1.dp),  // Set thickness to 1 dp for a thinner divider
+                        color = Color.LightGray  // Light gray color for the divider
+                    )
+
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                        //Favorite button shows only if user is logged in
+                        if (auth.currentUser != null) {
+                            isFavorite?.let { fav ->
+                                Button(
+                                    onClick = {
+                                        if (fav) {
+                                            // Remove from favorites
+                                            favoritesRepository.removeFromFavorites(g.id) { success ->
+                                                if (success) {
+                                                    isFavorite = false
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Failed to remove from favorites",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
+                                        } else {
+                                            // Add to favorites
+                                            favoritesRepository.addToFavourites(g) { success ->
+                                                if (success) {
+                                                    isFavorite = true
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Failed to add to favorites",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
                                             }
                                         }
-                                    } else {
-                                        // Add to favorites
-                                        favoritesRepository.addToFavourites(g) { success ->
-                                            if (success) {
-                                                isFavorite = true
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Failed to add to favorites",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else Color.Red),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = if (fav) Icons.Filled.Favorite else Icons.Outlined.Favorite,
-                                    contentDescription = "Favorite",
-                                    tint = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    if (fav) "Remove from Favorites" else "Add to Favorites",
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        //rating
-                        val gameRatingState by ratingViewModel.gameRating.observeAsState()
-                        val hasRatedState by ratingViewModel.userHasRated.observeAsState()
-                        val hasRated = hasRatedState?.first ?: false
-                        val previousRating = hasRatedState?.second
-                        val userId = auth.currentUser?.uid
-                        if (userId != null) {
-                            ratingViewModel.checkUserRated(userId, g.id.toString())
-                        }
-
-                        GameRatingSection(
-                            currentRating = previousRating ?: gameRatingState?.averageRating,
-                            enabled = true, //
-                            onRatingSelected = { ratingValue ->
-                                if (!hasRated) {
-                                    val userId = auth.currentUser?.uid ?: return@GameRatingSection
-                                    val gameIdString = g.id.toString()
-                                    ratingViewModel.submitRating(userId, gameIdString, ratingValue)
-                                    Toast.makeText(context, "Thanks for your rating!", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    val ratedValue = previousRating?.toInt() ?: 0
-                                    Toast.makeText(context, "You already rated $ratedValue ⭐!", Toast.LENGTH_SHORT).show()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else DeepBlue),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(
+                                        imageVector = if (fav) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                        contentDescription = "Favorite",
+                                        tint = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        if (fav) "Remove from Favorites" else "Add to Favorites",
+                                        color = Color.White
+                                    )
                                 }
                             }
 
-                        )
-                        Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(32.dp))
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .padding(vertical = 6.dp)  // Adjust padding as needed
+                                    .height(1.dp),  // Set thickness to 1 dp for a thinner divider
+                                color = Color.LightGray  // Light gray color for the divider
+                            )
+
+
+
+                            //rating
+                            val gameRatingState by ratingViewModel.gameRating.observeAsState()
+                            val hasRatedState by ratingViewModel.userHasRated.observeAsState()
+                            val hasRated = hasRatedState?.first ?: false
+                            val previousRating = hasRatedState?.second
+                            val userId = auth.currentUser?.uid
+                            if (userId != null) {
+                                ratingViewModel.checkUserRated(userId, g.id.toString())
+                            }
+
+                            GameRatingSection(
+                                currentRating = previousRating ?: gameRatingState?.averageRating,
+                                enabled = true, //
+                                onRatingSelected = { ratingValue ->
+                                    if (!hasRated) {
+                                        val userId =
+                                            auth.currentUser?.uid ?: return@GameRatingSection
+                                        val gameIdString = g.id.toString()
+                                        ratingViewModel.submitRating(
+                                            userId,
+                                            gameIdString,
+                                            ratingValue
+                                        )
+                                        Toast.makeText(
+                                            context,
+                                            "Thanks for your rating!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        val ratedValue = previousRating?.toInt() ?: 0
+                                        Toast.makeText(
+                                            context,
+                                            "You already rated $ratedValue ⭐!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+
+                            )
+                            Spacer(modifier = Modifier.height(32.dp))
+                        }
                     }
-
-
                 }
+            } ?: Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-        } ?: Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
         }
     }
-}

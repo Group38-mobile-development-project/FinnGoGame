@@ -38,7 +38,7 @@ fun GameRatingSection(
                         imageVector = Icons.Rounded.Star,
                         contentDescription = "Star $i",
 //                        tint = if (i <= selectedRating) Color.Yellow else Color.Gray
-                        tint = if (i <= (currentRating ?: 0.0)) Color.Yellow else Color.Gray
+                        tint = if (i <= (currentRating ?: 0.0)) Color(0xFFFFD700) else Color.Gray
 
                     )
                 }
