@@ -1,21 +1,20 @@
-
 package com.example.gamestore.data.mapper
 
-import com.example.gamestore.data.dto.RawGenre
-import com.example.gamestore.data.model.Genre
 
-object RawGenreMapper {
+import com.example.gamestore.data.dto.RawPlatform
+import com.example.gamestore.data.model.Platform
 
-    fun fromDto(dto: RawGenre): Genre {
-        return Genre(
+object RawPlatformMapper {
+
+    fun fromDto(dto: RawPlatform): Platform {
+        return Platform(
             id = dto.id,
-            title = dto.title,
-            identifier = dto.identifier,
+            name = dto.name,
+            slug = dto.slug,
             totalGames = dto.totalGames,
             backgroundImage = dto.backgroundImage ?: "",
             associatedGames = dto.associatedGames?.map { RawGameMapper.fromDto(it) }
         )
     }
 }
-
 

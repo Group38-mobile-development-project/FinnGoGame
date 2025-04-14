@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun GameStoreApp(modifier: Modifier = Modifier) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed) // change Open to closed appear mainscreen first
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed) // change Open to closed appear MainScreen first
     val navController = rememberNavController()
 
     ModalNavigationDrawer(
@@ -65,6 +65,9 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
                     },
                     onNavigateToGenre = {
                         navController.navigate("genre_list")
+                    },
+                    onNavigateToPlatform = {
+                        navController.navigate("platform_list")
                     }
                 )
             },

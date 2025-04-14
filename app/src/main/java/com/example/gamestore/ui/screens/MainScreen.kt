@@ -1,5 +1,6 @@
 package com.example.gamestore.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,113 +22,126 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.example.gamestore.ui.GameViewModel
-import com.example.gamestore.ui.model.Game
-import com.example.gamestore.presentation.utils.SearchBar // Add search bar here
+import com.example.gamestore.presentation.utils.SearchBar
+import com.example.gamestore.data.model.Game
+import com.example.gamestore.presentation.game.GameViewModel
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.LazyPagingItems
+import androidx.compose.foundation.clickable
 
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     val viewModel: GameViewModel = viewModel()
-
-    // Observe data from ViewModel
-    val games = viewModel.games.collectAsState().value
+    val gamesPaging: LazyPagingItems<Game> = viewModel.games.collectAsLazyPagingItems()
     val topRatedGames = viewModel.topRatedGames.collectAsState().value
     val isLoading = viewModel.isLoading.collectAsState().value
     val errorMessage = viewModel.errorMessage.collectAsState().value
 
-    // For controlling the search bar
-    var searchQuery by remember { mutableStateOf("") }
+    LazyColumn(
+        modifier = modifier.fillMaxSize()
+    ) {
+        item {
+            Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp)) {
+                Text(
+                    text = "Welcome",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Text(
+                    text = "What would you like to play?",
+                    fontSize = 20.sp,
+                    color = Color.Black
+                )
+            }
 
-    Column(modifier = modifier.fillMaxSize()) {
+            //SearchBar(title = "Search for game", navController = navController)
+            val searchQuery by viewModel.searchQuery.collectAsState()
+            SearchBar(
+                title = "Search for game",
+                navController = navController,
+                value = searchQuery,
+                onValueChange = { viewModel.onQueryChanged(it) }
+            )
 
-        // "Welcome" and "What would you like to play?" text with specific styling
-        Column(modifier = Modifier.padding(start = 16.dp, top = 16.dp)) {
             Text(
-                text = "Welcome",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold, // Makes "Welcome" bold
-                color = Color.Black,  // Set color to black
+                text = "Top Rated Games",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
             )
-            Text(
-                text = "What would you like to play?",
-                fontSize = 20.sp,
-                color = Color.Black,  // Set color to black
-            )
+
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(start = 8.dp)
+            ) {
+                items(topRatedGames) { game ->
+                    TopRatedGameItem(game = game, onClick = {
+                        navController.navigate("game_detail/${game.id}")
+                    })
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         }
 
-        // Search bar
-        SearchBar(title = "Search for game", navController = navController)
-
-        // 1. Top-Rated Section
-        Text(
-            text = "Top Rated Games",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,  // Bold the title for better emphasis
-            color = Color.Black,
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
-        )
-
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp) // Enough height for the card + image
-                .padding(start = 8.dp)
-        ) {
-            items(topRatedGames) { game ->
-                TopRatedGameItem(game)
-                Spacer(modifier = Modifier.width(8.dp))
+        stickyHeader {
+            Surface(tonalElevation = 4.dp) {
+                Text(
+                    text = "All Games",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(start = 16.dp, bottom = 8.dp, top = 8.dp)
+                )
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-        // 2. All Games Section
-        Text(
-            text = "All Games",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,  // Bold the title for better emphasis
-            color = Color.Black,
-            modifier = Modifier
-                .padding(start = 16.dp, bottom = 8.dp)
-        )
-
-        // Display loading / error / data for All Games section
-        when {
-            isLoading -> {
+        if (isLoading) {
+            item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f), // fill available vertical space
+                        .height(100.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
             }
-            errorMessage != null -> {
+        } else if (errorMessage != null) {
+            item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .height(100.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Error: $errorMessage", color = Color.Red)
                 }
             }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 16.dp)
-                ) {
-                    items(games) { game ->
-                        GameItem(game = game)  // Ensure images are loaded here
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+        } else {
+            items(
+                count = gamesPaging.itemCount,
+                key = { index -> gamesPaging[index]?.id ?: index },
+                contentType = { "Game" }
+            ) { index ->
+                val game = gamesPaging[index]
+                if (game != null) {
+                    GameItem(game = game, onClick = {
+                        navController.navigate("game_detail/${game.id}")
+                    })
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -135,37 +149,34 @@ fun MainScreen(
 }
 
 @Composable
-fun TopRatedGameItem(game: Game) {
+fun TopRatedGameItem(game: Game, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .width(160.dp)
-            .fillMaxHeight(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            .fillMaxHeight()
+            .clickable { onClick() },
+    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            val imageUrl = game.background_image ?: "https://via.placeholder.com/150"
+            val imageUrl = game.imageUrl.ifBlank { "https://via.placeholder.com/150" }
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
                         .data(data = imageUrl)
-                        .apply(block = fun ImageRequest.Builder.() {
-                            crossfade(true)
-                        }).build()
+                        .apply { crossfade(true) }
+                        .build()
                 ),
-                contentDescription = game.name,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(0.dp),
+                contentDescription = game.title,
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
 
-            // Semi-transparent gradient overlay
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)  // Shorter overlay for smaller cards
+                    .height(60.dp)
                     .align(Alignment.BottomStart)
                     .background(
                         brush = Brush.verticalGradient(
@@ -185,44 +196,42 @@ fun TopRatedGameItem(game: Game) {
                     .padding(8.dp)
             ) {
                 Text(
-                    text = game.name,
+                    text = game.title,
                     fontSize = 14.sp,
                     maxLines = 2,
-                    color = Color.White,  // Changed to white
+                    color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
-
             }
         }
     }
 }
 
 @Composable
-fun GameItem(game: Game) {
+fun GameItem(game: Game, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
+            .height(200.dp)
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            val imageUrl = game.background_image ?: "https://via.placeholder.com/150"
+            val imageUrl = game.imageUrl.ifBlank { "https://via.placeholder.com/150" }
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current)
                         .data(imageUrl)
-                        .apply(block = fun ImageRequest.Builder.() {
-                            crossfade(true)
-                        }).build()
+                        .apply { crossfade(true) }
+                        .build()
                 ),
-                contentDescription = game.name,
+                contentDescription = game.title,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
 
-            // Semi-transparent gradient overlay at the bottom
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -246,14 +255,13 @@ fun GameItem(game: Game) {
                     .padding(12.dp)
             ) {
                 Text(
-                    text = game.name,
+                    text = game.title,
                     fontSize = 18.sp,
-                    color = Color.White,  // Changed to white
+                    color = Color.White,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-
             }
         }
     }

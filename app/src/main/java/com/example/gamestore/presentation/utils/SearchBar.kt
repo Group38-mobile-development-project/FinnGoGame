@@ -8,44 +8,50 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.gamestore.ui.theme.ForSearchBarBackgroundColor  // Import the color from your Color.kt
+import com.example.gamestore.ui.theme.ForSearchBarBackgroundColor
+import androidx.compose.runtime.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
     title: String,
     navController: NavController,
+    value: String,
+    onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            navController.navigate("search")
+        }
+    }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(
-                elevation = 2.dp,
-                shape = RoundedCornerShape(25.dp),
-                clip = true
-            )
-            .background(
-                color = ForSearchBarBackgroundColor,
-                shape = RoundedCornerShape(25.dp)
-            )
+            .shadow(2.dp, RoundedCornerShape(25.dp), clip = true)
+            .background(ForSearchBarBackgroundColor, RoundedCornerShape(25.dp))
     ) {
         TextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+            value = value,
+            onValueChange = onValueChange,
             label = {
                 Text(
                     text = title,
@@ -54,20 +60,16 @@ fun SearchBar(
                 )
             },
             leadingIcon = {
-                IconButton(
-                    onClick = { navController.navigate("search") },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(56.dp),
+            interactionSource = interactionSource,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -80,12 +82,7 @@ fun SearchBar(
                 unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurface
             ),
             shape = RoundedCornerShape(25.dp),
-            singleLine = true,
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    navController.navigate("search")
-                }
-            )
+            singleLine = true
         )
     }
 }

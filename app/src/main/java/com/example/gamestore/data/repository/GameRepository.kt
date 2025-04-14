@@ -9,6 +9,8 @@ import com.example.gamestore.data.network.ApiClient
 import com.example.gamestore.data.paging.GamePagingSource
 import kotlinx.coroutines.flow.Flow
 import com.example.gamestore.data.paging.GameSearchPagingSource
+//debug
+import android.util.Log
 
 
 class GameRepository {
@@ -39,18 +41,24 @@ class GameRepository {
     }
 
 
+
     // // New: fetch top-rated games (page_size=8, sorted by rating, etc.) //Merge code Maryam
-//    suspend fun getTopRatedGames(): List<Game> {
-//        return try {
-//            val result = ApiClient.apiService.getGamesSorted(
-//                ordering = "-rating",
-//                pageSize = 8
-//            )
-//            result.results.map { RawGameMapper.fromDto(it) }
-//        } catch (e: Exception) {
-//            emptyList()
-//        }
-//    }
+    suspend fun getTopRatedGames(): List<Game> {
+        return try {
+            val result = ApiClient.apiService.getGamesSorted(
+                ordering = "-rating",
+                pageSize = 8
+            )
+            //Log.d("GameRepository", "Before mapping: ${result.results.size}")
+            val mapped = result.results.map { RawGameMapper.fromDto(it) }
+            //Log.d("GameRepository", "After mapping: ${mapped.size}")
+            mapped
+        } catch (e: Exception) {
+            Log.e("GameRepository", "Error fetching top-rated", e)
+            emptyList()
+        }
+    }
+
 
 }
 

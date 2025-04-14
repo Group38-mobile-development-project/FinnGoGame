@@ -93,10 +93,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
         }
     }
 
-    Scaffold(
-
-
-    ) { padding ->
+    Scaffold { padding ->
         game?.let { g ->
             val painter = rememberAsyncImagePainter(model = g.imageUrl)
             val genresText = g.genres.joinToString(", ") { it.title }
@@ -105,33 +102,15 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
             val publishersText = g.publishers.joinToString(", ")
             val storePairs = g.stores.zip(g.storesDomain)
 
-            //rating
-//            LaunchedEffect(g.id) {
-////                ratingViewModel.fetchGameRating(g.id.toString())
-//                val userId = auth.currentUser?.uid
-//                if (userId != null) {
-//                    ratingViewModel.checkUserRated(userId, g.id.toString())
-//                }
-//            }
-//rating
-            LaunchedEffect(g.id) {
-                ratingViewModel.fetchGameRating(g.id.toString())
-                val userId = auth.currentUser?.uid
-                if (userId != null) {
-                    ratingViewModel.checkUserRated(userId, g.id.toString())
-                }
-            }
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-
+                    .padding(padding)
             ) {
 
                 // Game Image
                 Box {
-
                     Image(
                         painter = rememberAsyncImagePainter(model = g.imageUrl),
                         contentDescription = g.title,
@@ -168,48 +147,41 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 0.dp),  // Optional vertical padding
+                            .padding(vertical = 0.dp),
                         textAlign = TextAlign.Center
                     )
 
+                    Spacer(modifier = Modifier.height(8.dp))
 
-
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        val maxLines = if (showFullDescription) Int.MAX_VALUE else 4
-                        Text(
-                            text = g.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = maxLines
-                        )
-                        if (!showFullDescription) {
-                            TextButton(onClick = { showFullDescription = true }) {
-                                Text("Read more")
-                            }
+                    val maxLines = if (showFullDescription) Int.MAX_VALUE else 4
+                    Text(
+                        text = g.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = maxLines
+                    )
+                    if (!showFullDescription) {
+                        TextButton(onClick = { showFullDescription = true }) {
+                            Text("Read more")
                         }
+                    }
 
                     HorizontalDivider(
                         modifier = Modifier
-                            .padding(vertical = 6.dp)  // Adjust padding as needed
-                            .height(1.dp),  // Set thickness to 1 dp for a thinner divider
-                        color = Color.LightGray  // Light gray color for the divider
+                            .padding(vertical = 6.dp)
+                            .height(1.dp),
+                        color = Color.LightGray
                     )
-
-
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        // Title for the information section
                         Text(
-                            text = "Information",  // "Information" text at the top
+                            text = "Information",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
 
-                        // Row containing Platforms, Genre, Release date, Developer, etc.
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Platforms", fontWeight = FontWeight.Bold)
@@ -245,13 +217,13 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                             ) {
                                 Text(
                                     text = "Rating", // Label above the rating number
-                                    fontSize = 20.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.Black
+                                    color = Color.Gray // A neutral color for the label
                                 )
                                 Text(
                                     text = String.format("%.1f", g.averageRating), // Display the rating number
-                                    fontSize = 30.sp, // Make it big
+                                    fontSize = 20.sp, // Make it big
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black // Black color for the rating number
                                 )
@@ -266,7 +238,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                         imageVector = Icons.Rounded.Star,
                                         contentDescription = null,
                                         tint = Color.Black,  // Black color for the stars
-                                        modifier = Modifier.size(35.dp) // Size of the stars
+                                        modifier = Modifier.size(24.dp) // Size of the stars
                                     )
                                 }
                                 // Optionally handle partial stars
@@ -275,7 +247,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                         imageVector = Icons.Rounded.Star,
                                         contentDescription = null,
                                         tint = Color.Black,
-                                        modifier = Modifier.size(35.dp) // Size of the partial star
+                                        modifier = Modifier.size(24.dp) // Size of the partial star
                                     )
                                 }
                             }
@@ -285,9 +257,9 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
 
                     HorizontalDivider(
                         modifier = Modifier
-                            .padding(vertical = 6.dp)  // Adjust padding as needed
-                            .height(1.dp),  // Set thickness to 1 dp for a thinner divider
-                        color = Color.LightGray  // Light gray color for the divider
+                            .padding(vertical = 6.dp)
+                            .height(1.dp),
+                        color = Color.LightGray
                     )
 
 
@@ -299,8 +271,8 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp),  // Add some padding if needed
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)  // Space between the buttons
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         items(storePairs) { (storeName, storeDomain) ->
                             Button(
@@ -312,138 +284,135 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                     context.startActivity(intent)
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF87CEFA) // Button color
+                                    containerColor = Color(0xFF87CEFA)
                                 ),
                                 modifier = Modifier
-                                    .height(40.dp)  // Adjust the height for a more rectangular button
-                                    .clip(RoundedCornerShape(1.dp))  // Slightly rounded corners to match the screenshot
+                                    .height(40.dp)
+                                    .clip(RoundedCornerShape(1.dp))
                             ) {
                                 Text(" $storeName", color = Color.White)
                             }
                         }
                     }
 
-
                     Spacer(modifier = Modifier.height(20.dp))
 
                     HorizontalDivider(
                         modifier = Modifier
-                            .padding(vertical = 6.dp)  // Adjust padding as needed
-                            .height(1.dp),  // Set thickness to 1 dp for a thinner divider
-                        color = Color.LightGray  // Light gray color for the divider
+                            .padding(vertical = 6.dp)
+                            .height(1.dp),
+                        color = Color.LightGray
                     )
 
 
                     Spacer(modifier = Modifier.height(20.dp))
-                        //Favorite button shows only if user is logged in
-                        if (auth.currentUser != null) {
-                            isFavorite?.let { fav ->
-                                Button(
-                                    onClick = {
-                                        if (fav) {
-                                            // Remove from favorites
-                                            favoritesRepository.removeFromFavorites(g.id) { success ->
-                                                if (success) {
-                                                    isFavorite = false
-                                                } else {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Failed to remove from favorites",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                            }
+
+                    isFavorite?.let { fav ->
+                        Button(
+                            onClick = {
+                                if (fav) {
+                                    favoritesRepository.removeFromFavorites(g.id) { success ->
+                                        if (success) {
+                                            isFavorite = false
                                         } else {
-                                            // Add to favorites
-                                            favoritesRepository.addToFavourites(g) { success ->
-                                                if (success) {
-                                                    isFavorite = true
-                                                } else {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Failed to add to favorites",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                            }
+                                            Toast.makeText(
+                                                context,
+                                                "Failed to remove from favorites",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else DeepBlue),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = if (fav) Icons.Filled.Favorite else Icons.Outlined.Favorite,
-                                        contentDescription = "Favorite",
-                                        tint = Color.White
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        if (fav) "Remove from Favorites" else "Add to Favorites",
-                                        color = Color.White
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(32.dp))
-                            HorizontalDivider(
-                                modifier = Modifier
-                                    .padding(vertical = 6.dp)  // Adjust padding as needed
-                                    .height(1.dp),  // Set thickness to 1 dp for a thinner divider
-                                color = Color.LightGray  // Light gray color for the divider
-                            )
-
-
-
-                            //rating
-                            val gameRatingState by ratingViewModel.gameRating.observeAsState()
-                            val hasRatedState by ratingViewModel.userHasRated.observeAsState()
-                            val hasRated = hasRatedState?.first ?: false
-                            val previousRating = hasRatedState?.second
-                            val userId = auth.currentUser?.uid
-                            if (userId != null) {
-                                ratingViewModel.checkUserRated(userId, g.id.toString())
-                            }
-
-                            GameRatingSection(
-                                currentRating = previousRating ?: gameRatingState?.averageRating,
-                                enabled = true, //
-                                onRatingSelected = { ratingValue ->
-                                    if (!hasRated) {
-                                        val userId =
-                                            auth.currentUser?.uid ?: return@GameRatingSection
-                                        val gameIdString = g.id.toString()
-                                        ratingViewModel.submitRating(
-                                            userId,
-                                            gameIdString,
-                                            ratingValue
-                                        )
-                                        Toast.makeText(
-                                            context,
-                                            "Thanks for your rating!",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        val ratedValue = previousRating?.toInt() ?: 0
-                                        Toast.makeText(
-                                            context,
-                                            "You already rated $ratedValue ⭐!",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                    }
+                                } else {
+                                    favoritesRepository.addToFavorites(g) { success ->
+                                        if (success) {
+                                            isFavorite = true
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Failed to add to favorites",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }
                                 }
-
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else DeepBlue),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = if (fav) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                contentDescription = "Favorite",
+                                tint = Color.White
                             )
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                if (fav) "Remove from Favorites" else "Add to Favorites",
+                                color = Color.White
+                            )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(vertical = 6.dp)
+                            .height(1.dp),
+                        color = Color.LightGray
+                    )
+
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    //rating section (Final rating area)
+                    val gameRatingState by ratingViewModel.gameRating.observeAsState()
+                    val hasRatedState by ratingViewModel.userHasRated.observeAsState()
+                    val hasRated = hasRatedState?.first ?: false
+                    val previousRating = hasRatedState?.second
+                    val userId = auth.currentUser?.uid
+                    if (userId != null) {
+                        ratingViewModel.checkUserRated(userId, g.id.toString())
+                    }
+
+                    GameRatingSection(
+                        currentRating = previousRating ?: gameRatingState?.averageRating,
+                        enabled = true,
+                        onRatingSelected = { ratingValue ->
+                            if (!hasRated) {
+                                val userId =
+                                    auth.currentUser?.uid ?: return@GameRatingSection
+                                val gameIdString = g.id.toString()
+                                ratingViewModel.submitRating(
+                                    userId,
+                                    gameIdString,
+                                    ratingValue
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "Thanks for your rating!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                val ratedValue = previousRating?.toInt() ?: 0
+                                Toast.makeText(
+                                    context,
+                                    "You already rated $ratedValue ⭐!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-            } ?: Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
             }
+        } ?: Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
         }
     }
+}

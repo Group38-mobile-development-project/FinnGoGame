@@ -8,11 +8,30 @@ data class RawPlatformWrapper(
     val platform: RawPlatform
 )
 
+//data class RawPlatform(
+//    val id: Int,
+//    val name: String,
+//    val slug: String
+//)
 data class RawPlatform(
     val id: Int,
+
+    @SerializedName("name")
     val name: String,
-    val slug: String
+
+    @SerializedName("slug")
+    val slug: String,
+
+    @SerializedName("games_count")
+    val totalGames: Int,
+
+    @SerializedName("image_background")
+    val backgroundImage: String,
+
+    @SerializedName("games")
+    val associatedGames: List<RawGame>? = null
 )
+
 
 // COMPANY
 data class RawCompany(

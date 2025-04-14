@@ -9,17 +9,19 @@ import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import com.example.gamestore.presentation.genre.GenreGameViewModel
+import com.example.gamestore.presentation.platform.PlatformGameViewModel
 import com.example.gamestore.presentation.utils.SearchBar
+//
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameListScreenFilteredByGenre(
+fun GameListScreenFilteredByPlatfrom(
     navController: NavController,
-    genreSlug: String,
+    platformSlug: String,
     onGameClick: (Int) -> Unit
 ) {
-    val viewModel = remember { GenreGameViewModel(genreSlug) }
+    val viewModel = remember { PlatformGameViewModel(platformSlug) }
     val pagingItems = viewModel.games.collectAsLazyPagingItems()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
@@ -44,9 +46,11 @@ fun GameListScreenFilteredByGenre(
                     GameListItem(
                         game = item,
                         onClick = {
-                            navController.navigate("game_detail/${item.id}")
+                            onGameClick(item.id) // fix
                         }
                     )
+                    Log.d("PlatformGame", "Clicked game with id: ${item.id}")
+
                 }
             }
         }

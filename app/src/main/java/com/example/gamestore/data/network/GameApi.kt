@@ -3,6 +3,8 @@ package com.example.gamestore.data.network
 import com.example.gamestore.data.dto.RawGame
 import com.example.gamestore.data.dto.GameListResponse
 import com.example.gamestore.data.dto.GenreListResponse
+import com.example.gamestore.data.dto.PlatformListResponse
+
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -32,15 +34,28 @@ interface GameApi {
     @GET("games") // add
     suspend fun searchGames(
         @Query("search") query: String,
-        @Query("page") page: Int
+        @Query("page") page: Int,
+        @Query("page_size") pageSize: Int = 20,
     ): GameListResponse
 
     // Additional: fetch with sorting, e.g. &ordering=-rating for top rated //merge code Maryam
-//    @GET("games")
-//    suspend fun getGamesSorted(
-//        @Query("ordering") ordering: String = "-rating",
-//        @Query("page_size") pageSize: Int = 10
-//    ): GameListResponse
+    @GET("games")
+    suspend fun getGamesSorted(
+        @Query("ordering") ordering: String = "-rating",
+        @Query("page_size") pageSize: Int = 10
+    ): GameListResponse
+
+    //platform
+    @GET("platforms")
+    suspend fun fetchPlatforms(): PlatformListResponse
+
+    @GET("games")
+    suspend fun fetchGamesByPlatform(
+        @Query("platform") platformSlug: String,
+        @Query("page") page: Int,
+        @Query("page_size") pageSize: Int = 20
+    ): GameListResponse
+
 
 }
 

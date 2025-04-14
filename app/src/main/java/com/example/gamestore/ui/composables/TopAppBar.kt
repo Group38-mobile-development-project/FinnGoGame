@@ -12,7 +12,8 @@ import kotlinx.coroutines.launch
 fun TopAppBar(
     drawerState: DrawerState,
     onNavigateToHome: () -> Unit,
-    onNavigateToGenre: () -> Unit
+    onNavigateToGenre: () -> Unit,
+    onNavigateToPlatform: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var menuExpanded by remember { mutableStateOf(false) }
@@ -51,7 +52,8 @@ fun TopAppBar(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
                 onNavigateToHome = onNavigateToHome,
-                onNavigateToGenre = onNavigateToGenre
+                onNavigateToGenre = onNavigateToGenre,
+                onNavigateToPlatform = onNavigateToPlatform
             )
         }
     )

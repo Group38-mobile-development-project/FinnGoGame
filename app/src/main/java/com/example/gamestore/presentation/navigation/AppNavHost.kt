@@ -16,6 +16,11 @@ import com.example.gamestore.ui.screens.LoginScreen
 import com.example.gamestore.ui.screens.MainScreen
 import com.example.gamestore.ui.screens.SettingsScreen
 
+import com.example.gamestore.presentation.game.GameListScreenFilteredByPlatfrom
+import com.example.gamestore.presentation.platform.PlatformListScreen
+
+
+
 @Composable
 fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController = navController, startDestination = "home", modifier = modifier) {
@@ -80,6 +85,32 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             GameDetailScreen(navController = navController,
             gameId = backStackEntry.arguments?.getInt("gameId") ?: 0)
         }
+
+        //platform
+        composable("platform_list") {
+            PlatformListScreen(
+                navController = navController,
+                onPlatformClick = { platform ->
+                    navController.navigate("game_list_platform/${platform.slug}")
+                }
+            )
+        }
+
+        composable(
+            "game_list_platform/{platformSlug}",
+            arguments = listOf(navArgument("platformSlug") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val platformSlug = backStackEntry.arguments?.getString("platformSlug") ?: ""
+            GameListScreenFilteredByPlatfrom(
+                navController = navController,
+                platformSlug = platformSlug,
+                onGameClick = { gameId ->
+                    navController.navigate("game_detail/$gameId")
+                }
+            )
+        }
+
+
 
     }
 }
