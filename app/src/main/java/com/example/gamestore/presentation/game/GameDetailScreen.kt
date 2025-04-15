@@ -223,7 +223,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                 )
                                 Text(
                                     text = String.format("%.1f", g.averageRating), // Display the rating number
-                                    fontSize = 20.sp, // Make it big
+                                    fontSize = 35.sp, // Make it big
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black // Black color for the rating number
                                 )
@@ -238,7 +238,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                         imageVector = Icons.Rounded.Star,
                                         contentDescription = null,
                                         tint = Color.Black,  // Black color for the stars
-                                        modifier = Modifier.size(24.dp) // Size of the stars
+                                        modifier = Modifier.size(35.dp) // Size of the stars
                                     )
                                 }
                                 // Optionally handle partial stars
@@ -247,7 +247,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                         imageVector = Icons.Rounded.Star,
                                         contentDescription = null,
                                         tint = Color.Black,
-                                        modifier = Modifier.size(24.dp) // Size of the partial star
+                                        modifier = Modifier.size(35.dp) // Size of the partial star
                                     )
                                 }
                             }
