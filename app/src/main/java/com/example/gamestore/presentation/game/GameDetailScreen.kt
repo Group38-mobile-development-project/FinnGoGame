@@ -37,28 +37,22 @@ import com.example.gamestore.presentation.rating.RatingViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
-import com.example.gamestore.data.model.GameRating
-import androidx.compose.material.icons.filled.Computer
-import androidx.compose.material.icons.filled.VideogameAsset
-import androidx.compose.material.icons.filled.Gamepad
-import androidx.compose.material.icons.filled.SportsEsports
-import androidx.compose.material.icons.filled.StarOutline
+import java.util.Locale
+import com.example.gamestore.data.repository.ReviewRepository
+import com.example.gamestore.ui.ReviewViewModel
 import com.example.gamestore.ui.theme.DeepBlue
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameDetailScreen( navController: NavHostController,  // Add NavController parameter
                       gameId: Int,
@@ -69,10 +63,12 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
     var game by remember { mutableStateOf<Game?>(null) }
     val scope = rememberCoroutineScope()
     var showFullDescription by remember { mutableStateOf(false) }
+    var reviewContent by remember { mutableStateOf("") }
     val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     var isFavorite by remember { mutableStateOf<Boolean?>(null) }
-
+    val currentUser = auth.currentUser
+    val userId = currentUser?.uid
 
     val ratingViewModel: RatingViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -82,6 +78,13 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
         }
     )
 
+    val reviewViewModel: ReviewViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return ReviewViewModel(ReviewRepository()) as T
+        }
+    })
+    val reviews by reviewViewModel.reviews.collectAsState()
+
     LaunchedEffect(gameId) {
         scope.launch {
             game = repository.getGameById(gameId)
@@ -89,13 +92,13 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                 favoritesRepository.isFavorite(it.id) { result ->
                     isFavorite = result
                 }
+                reviewViewModel.fetchReviews(gameId)
             }
         }
     }
 
     Scaffold { padding ->
         game?.let { g ->
-            val painter = rememberAsyncImagePainter(model = g.imageUrl)
             val genresText = g.genres.joinToString(", ") { it.title }
             val platformsText = g.platforms.joinToString(", ")
             val developersText = g.developers.joinToString(", ")
@@ -222,8 +225,8 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                     color = Color.Gray // A neutral color for the label
                                 )
                                 Text(
-                                    text = String.format("%.1f", g.averageRating), // Display the rating number
-                                    fontSize = 35.sp, // Make it big
+                                    text = String.format(Locale.getDefault(),"%.1f", g.averageRating), // Display the rating number
+                                    fontSize = 20.sp, // Make it big
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black // Black color for the rating number
                                 )
@@ -238,7 +241,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                         imageVector = Icons.Rounded.Star,
                                         contentDescription = null,
                                         tint = Color.Black,  // Black color for the stars
-                                        modifier = Modifier.size(35.dp) // Size of the stars
+                                        modifier = Modifier.size(24.dp) // Size of the stars
                                     )
                                 }
                                 // Optionally handle partial stars
@@ -247,7 +250,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                         imageVector = Icons.Rounded.Star,
                                         contentDescription = null,
                                         tint = Color.Black,
-                                        modifier = Modifier.size(35.dp) // Size of the partial star
+                                        modifier = Modifier.size(24.dp) // Size of the partial star
                                     )
                                 }
                             }
@@ -369,7 +372,6 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                     val hasRatedState by ratingViewModel.userHasRated.observeAsState()
                     val hasRated = hasRatedState?.first ?: false
                     val previousRating = hasRatedState?.second
-                    val userId = auth.currentUser?.uid
                     if (userId != null) {
                         ratingViewModel.checkUserRated(userId, g.id.toString())
                     }
@@ -379,11 +381,11 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         enabled = true,
                         onRatingSelected = { ratingValue ->
                             if (!hasRated) {
-                                val userId =
-                                    auth.currentUser?.uid ?: return@GameRatingSection
+                                val userIdCheck =
+                                    userId?: return@GameRatingSection
                                 val gameIdString = g.id.toString()
                                 ratingViewModel.submitRating(
-                                    userId,
+                                    userIdCheck,
                                     gameIdString,
                                     ratingValue
                                 )
@@ -404,6 +406,41 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
 
                     )
                     Spacer(modifier = Modifier.height(32.dp))
+                    ReviewInputSection(
+                        reviewContent = reviewContent,
+                        onContentChange = { reviewContent = it },
+                        onSubmit = {
+                            reviewViewModel.submitReview(g.id, reviewContent)
+                            reviewContent = ""
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    reviews.forEach { review ->
+                        // Track the upvote and downvote states for each review
+                        var hasUpvoted by remember { mutableStateOf(false) }
+                        var hasDownvoted by remember { mutableStateOf(false) }
+                        // Fetch upvote/downvote status when the review is first displayed
+                        LaunchedEffect(review.id) {
+                            reviewViewModel.hasUpvoted(review.gameId, review.id, userId.toString()) { upvoted ->
+                                hasUpvoted = upvoted
+                            }
+                            reviewViewModel.hasDownvoted(review.gameId, review.id, userId.toString()) { downvoted ->
+                                hasDownvoted = downvoted
+                            }
+                        }
+                        ReviewCard(
+                            review = review,
+                            isOwn = review.userId == userId, // Compare user IDs to check if it's the current user's review
+                            onUpdate = { updatedContent -> reviewViewModel.updateReview(review.gameId, review.id, updatedContent) },
+                            onDelete = { reviewViewModel.deleteReview(review.gameId, review.id) },  // Delete review logic
+                            onUpvote = { reviewViewModel.voteReview(review.gameId, review.id, upvote = true) },
+                            onDownvote = { reviewViewModel.voteReview(review.gameId, review.id, upvote = false) },
+                            hasUpvoted = hasUpvoted,
+                            hasDownvoted = hasDownvoted
+                        )
+                    }
                 }
             }
         } ?: Box(
@@ -413,6 +450,116 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
+        }
+    }
+}
+
+@Composable
+fun ReviewInputSection(
+    reviewContent: String,
+    onContentChange: (String) -> Unit,
+    onSubmit: () -> Unit
+) {
+    Text("Write a Review", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+    OutlinedTextField(
+        value = reviewContent,
+        onValueChange = onContentChange,
+        label = { Text("Your review") },
+        modifier = Modifier.fillMaxWidth()
+    )
+    Button(onClick = onSubmit, modifier = Modifier.padding(top = 8.dp)) {
+        Text("Submit Review")
+    }
+}
+
+@Composable
+fun ReviewCard(
+    review: com.example.gamestore.data.model.Review,
+    isOwn: Boolean,
+    onUpdate: (String) -> Unit,
+    onDelete: () -> Unit,  // Add a parameter for the delete action
+    onUpvote: () -> Unit,
+    onDownvote: () -> Unit,
+    hasUpvoted: Boolean,
+    hasDownvoted: Boolean
+) {
+    var editing by remember { mutableStateOf(false) }
+    var updatedContent by remember { mutableStateOf(review.content) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(review.userEmail, fontWeight = FontWeight.Bold)
+            if (editing) {
+                OutlinedTextField(
+                    value = updatedContent,
+                    onValueChange = { updatedContent = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row {
+                    Button(onClick = {
+                        onUpdate(updatedContent)
+                        editing = false
+                    }) { Text("Save") }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { editing = false }) { Text("Cancel") }
+                }
+            } else {
+                Text(review.content)
+                if (isOwn) {
+                    Row {
+                        TextButton(onClick = { editing = true }) { Text("Edit") }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = onDelete) { Text("Delete") }  // Add the delete button
+                    }
+                }
+            }
+            Row {
+                // Upvote button
+                IconButton(
+                    onClick = {
+                        onUpvote()
+                    },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowUpward,
+                        contentDescription = "Upvote",
+                        tint = if (hasUpvoted) Color.Green else Color.Gray,
+                    )
+                }
+                Text(
+                    text = "${review.upvotes}",
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+                // Downvote button
+                IconButton(
+                    onClick = {
+                        onDownvote()
+                    },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowDownward,
+                        contentDescription = "Downvote",
+                        tint = if (hasDownvoted) Color.Red else Color.Gray
+                    )
+                }
+                Text(
+                    text = "${review.downvotes}",
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }
+            // Display replies
+            review.replies.forEach { reply ->
+                Text(
+                    "- ${reply.userId.take(6)}: ${reply.content}",
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
         }
     }
 }
