@@ -12,7 +12,8 @@ fun MenuDropdown(
     onDismissRequest: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToGenre: () -> Unit,
-    onNavigateToPlatform: () -> Unit
+    onNavigateToPlatform: () -> Unit,
+    onNavigateToForumPage: () -> Unit
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -44,6 +45,18 @@ fun MenuDropdown(
             onClick = {
                 onDismissRequest()
                 onNavigateToPlatform()
+            },
+            leadingIcon = {
+                Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null)
+            }
+        )
+
+
+        DropdownMenuItem(
+            text = { Text("Forum Page") },
+            onClick = {
+                onDismissRequest()
+                onNavigateToForumPage()
             },
             leadingIcon = {
                 Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null)

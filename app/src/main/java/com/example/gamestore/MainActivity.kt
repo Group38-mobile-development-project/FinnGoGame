@@ -68,7 +68,11 @@ fun GameStoreApp(modifier: Modifier = Modifier) {
                     },
                     onNavigateToPlatform = {
                         navController.navigate("platform_list")
-                    }
+                    },
+                    onNavigateToForumPage = {
+                        navController.navigate("forum_list")
+                    },
+
                 )
             },
             modifier = Modifier.fillMaxSize()

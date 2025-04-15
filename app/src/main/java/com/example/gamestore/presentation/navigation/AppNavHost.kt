@@ -18,7 +18,7 @@ import com.example.gamestore.ui.screens.SettingsScreen
 
 import com.example.gamestore.presentation.game.GameListScreenFilteredByPlatfrom
 import com.example.gamestore.presentation.platform.PlatformListScreen
-
+import com.example.gamestore.ui.screens.ForumPageScreen
 
 
 @Composable
@@ -40,6 +40,10 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         composable("settings") {
             SettingsScreen(navController = navController)
         }
+        composable("forum_list") {
+            ForumPageScreen(navController = navController)
+        }
+
 
         composable("sign") {
             LoginScreen(navController = navController)

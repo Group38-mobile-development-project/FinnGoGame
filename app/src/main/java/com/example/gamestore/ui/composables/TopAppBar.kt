@@ -13,7 +13,8 @@ fun TopAppBar(
     drawerState: DrawerState,
     onNavigateToHome: () -> Unit,
     onNavigateToGenre: () -> Unit,
-    onNavigateToPlatform: () -> Unit
+    onNavigateToPlatform: () -> Unit,
+    onNavigateToForumPage: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var menuExpanded by remember { mutableStateOf(false) }
@@ -53,7 +54,8 @@ fun TopAppBar(
                 onDismissRequest = { menuExpanded = false },
                 onNavigateToHome = onNavigateToHome,
                 onNavigateToGenre = onNavigateToGenre,
-                onNavigateToPlatform = onNavigateToPlatform
+                onNavigateToPlatform = onNavigateToPlatform,
+                onNavigateToForumPage = onNavigateToForumPage
             )
         }
     )
