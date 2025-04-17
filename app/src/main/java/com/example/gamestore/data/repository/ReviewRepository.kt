@@ -1,5 +1,6 @@
 package com.example.gamestore.data.repository
 
+import com.example.gamestore.data.model.Reply
 import com.example.gamestore.data.model.Review
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,36 +10,42 @@ class ReviewRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    fun submitReview(gameId: Int, content: String, onComplete: (Boolean) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return onComplete(false)
-        val userEmail = auth.currentUser?.email ?: return onComplete(false)
-        val reviewId = db.collection("reviews").document().id
-        val review = Review(
-            id = reviewId,
-            userId = userId,
-            userEmail = userEmail,
-            gameId = gameId,
-            content = content,
-            timestamp = System.currentTimeMillis()
-        )
-
-        val reviewRef = db.collection("reviews")
-            .document(gameId.toString())
-            .collection("userReviews")
-            .document(reviewId)
-
+    fun submitReview(gameId: Int, content: String, onComplete: (Boolean, String?) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return onComplete(false, "You need to log in first")
+        val userEmail = auth.currentUser?.email ?: return onComplete(false, "No email found")
         val userReviewRef = db.collection("users")
             .document(userId)
             .collection("reviews")
             .document(gameId.toString())
-
-        db.runBatch { batch ->
-            batch.set(reviewRef, review)
-            batch.set(userReviewRef, review)
-        }.addOnSuccessListener {
-            onComplete(true)
+        // Check if review already exists
+        userReviewRef.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                onComplete(false, "You've already submitted a review for this game.")
+            } else {
+                val reviewId = db.collection("reviews").document().id
+                val review = Review(
+                    id = reviewId,
+                    userId = userId,
+                    userEmail = userEmail,
+                    gameId = gameId,
+                    content = content,
+                    timestamp = System.currentTimeMillis()
+                )
+                val reviewRef = db.collection("reviews")
+                    .document(gameId.toString())
+                    .collection("userReviews")
+                    .document(reviewId)
+                db.runBatch { batch ->
+                    batch.set(reviewRef, review)
+                    batch.set(userReviewRef, review)
+                }.addOnSuccessListener {
+                    onComplete(true, null)
+                }.addOnFailureListener {
+                    onComplete(false, "Failed to submit review.")
+                }
+            }
         }.addOnFailureListener {
-            onComplete(false)
+            onComplete(false, "Error checking existing review.")
         }
     }
 
@@ -82,16 +89,82 @@ class ReviewRepository {
             .document(gameId.toString())
             .collection("userReviews")
             .document(reviewId)
-
         val userReviewRef = db.collection("users")
             .document(userId)
             .collection("reviews")
             .document(gameId.toString())
-        // Optional: delete all votes subCollection too
+        val votesRef = reviewRef.collection("votes")
+            .document(userId)
         db.runBatch { batch ->
             batch.delete(reviewRef)
             batch.delete(userReviewRef)
+            batch.delete(votesRef)
         }.addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
+    fun submitReply(gameId: Int, reviewId: String, content: String, onComplete: (Boolean) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return onComplete(false)
+        val userEmail = auth.currentUser?.email ?: return onComplete(false)
+        val replyId = db.collection("reviews")
+            .document(gameId.toString())
+            .collection("userReviews")
+            .document(reviewId)
+            .collection("replies")
+            .document().id
+        val reply = mapOf(
+            "id" to replyId,
+            "userId" to userId,
+            "userEmail" to userEmail,
+            "content" to content,
+            "timestamp" to System.currentTimeMillis()
+        )
+        db.collection("reviews")
+            .document(gameId.toString())
+            .collection("userReviews")
+            .document(reviewId)
+            .collection("replies")
+            .document(replyId)
+            .set(reply)
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
+    fun editReply(
+        gameId: Int,
+        reviewId: String,
+        replyId: String,
+        newContent: String,
+        onComplete: (Boolean) -> Unit
+    ){
+        val replyRef = db.collection("reviews")
+            .document(gameId.toString())
+            .collection("userReviews")
+            .document(reviewId)
+            .collection("replies")
+        val updates = mapOf(
+            "content" to newContent,
+            "timestamp" to System.currentTimeMillis()
+        )
+        replyRef.document(replyId).update(updates)
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
+    fun deleteReply(
+        gameId: Int,
+        reviewId: String,
+        replyId: String,
+        onComplete: (Boolean) -> Unit
+    ) {
+        val replyRef = db.collection("reviews")
+            .document(gameId.toString())
+            .collection("userReviews")
+            .document(reviewId)
+        replyRef.collection("replies")
+            .document(replyId)
+            .delete()
+            .addOnSuccessListener { onComplete(true) }
             .addOnFailureListener { onComplete(false) }
     }
 
@@ -208,14 +281,51 @@ class ReviewRepository {
             .collection("userReviews")
             .get()
             .addOnSuccessListener { snapshot ->
-                val reviews = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Review::class.java)?.copy(id = doc.id)
+                val reviewDocs = snapshot.documents
+                val reviews = mutableListOf<Review>()
+
+                if (reviewDocs.isEmpty()) {
+                    onComplete(emptyList())
+                    return@addOnSuccessListener
                 }
-                onComplete(reviews)
+
+                var loadedCount = 0
+                for (doc in reviewDocs) {
+                    val review = doc.toObject(Review::class.java)?.copy(id = doc.id)
+
+                    if (review != null) {
+                        doc.reference.collection("replies")
+                            .orderBy("timestamp")
+                            .get()
+                            .addOnSuccessListener { repliesSnapshot ->
+                                val replies = repliesSnapshot.documents.mapNotNull { replyDoc ->
+                                    replyDoc.toObject(Reply::class.java)
+                                }
+                                review.replies = replies
+                                reviews.add(review)
+                                loadedCount++
+                                if (loadedCount == reviewDocs.size) {
+                                    onComplete(reviews.sortedByDescending { it.timestamp }) // Optional: sort by latest
+                                }
+                            }
+                            .addOnFailureListener {
+                                review.replies = emptyList()
+                                reviews.add(review)
+                                loadedCount++
+                                if (loadedCount == reviewDocs.size) {
+                                    onComplete(reviews.sortedByDescending { it.timestamp })
+                                }
+                            }
+                    } else {
+                        loadedCount++
+                        if (loadedCount == reviewDocs.size) {
+                            onComplete(reviews.sortedByDescending { it.timestamp })
+                        }
+                    }
+                }
             }
             .addOnFailureListener {
                 onComplete(emptyList())
             }
     }
-
 }

@@ -9,10 +9,12 @@ data class Review(
     val timestamp: Long = System.currentTimeMillis(),
     val upvotes: Int = 0,
     val downvotes: Int = 0,
-    val replies: List<Reply> = emptyList()
+    var replies: List<Reply> = emptyList()
 )
 data class Reply(
+    val id: String = "",
     val userId: String = "",
+    val userEmail: String = "",
     val content: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )

@@ -42,6 +42,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.outlined.StarHalf
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -52,7 +53,7 @@ import java.util.Locale
 import com.example.gamestore.data.repository.ReviewRepository
 import com.example.gamestore.ui.ReviewViewModel
 import com.example.gamestore.ui.theme.DeepBlue
-import androidx.compose.material.icons.outlined.StarHalf
+import androidx.compose.runtime.collectAsState
 import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Color as ComposeColor
 
@@ -62,7 +63,6 @@ import androidx.compose.ui.graphics.Color as ComposeColor
 fun GameDetailScreen( navController: NavHostController,  // Add NavController parameter
                       gameId: Int,
                       onRatingUpdated: ((Double, Int) -> Unit)? = null) {
-
     val repository = remember { GameRepository() }
     val favoritesRepository = remember { FavoritesRepository() }
     var game by remember { mutableStateOf<Game?>(null) }
@@ -89,6 +89,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
         }
     })
     val reviews by reviewViewModel.reviews.collectAsState()
+    val errorMessage by reviewViewModel.reviewErrorMessage.collectAsState()
 
     LaunchedEffect(gameId) {
         scope.launch {
@@ -262,7 +263,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                 }
                                 if (hasHalfStar) {
                                     Icon(
-                                        imageVector = Icons.Outlined.StarHalf,
+                                        imageVector = Icons.AutoMirrored.Outlined.StarHalf,
                                         contentDescription = "Half Star",
                                         tint = ComposeColor(0xFFFFD700),
                                         modifier = Modifier.size(20.dp)
@@ -435,7 +436,9 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         onSubmit = {
                             reviewViewModel.submitReview(g.id, reviewContent)
                             reviewContent = ""
-                        }
+                        },
+                        errorMessage = errorMessage,
+                        onErrorShown = { reviewViewModel.clearReviewError() }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -456,12 +459,20 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         ReviewCard(
                             review = review,
                             isOwn = review.userId == userId, // Compare user IDs to check if it's the current user's review
+                            isUserLoggedIn = userId != null,
                             onUpdate = { updatedContent -> reviewViewModel.updateReview(review.gameId, review.id, updatedContent) },
-                            onDelete = { reviewViewModel.deleteReview(review.gameId, review.id) },  // Delete review logic
+                            onDelete = { reviewViewModel.deleteReview(review.gameId, review.id) },
                             onUpvote = { reviewViewModel.voteReview(review.gameId, review.id, upvote = true) },
                             onDownvote = { reviewViewModel.voteReview(review.gameId, review.id, upvote = false) },
                             hasUpvoted = hasUpvoted,
-                            hasDownvoted = hasDownvoted
+                            hasDownvoted = hasDownvoted,
+                            onReply = { content -> reviewViewModel.submitReply(gameId, review.id, content) },
+                            onEditReply = { replyId, newContent ->
+                                reviewViewModel.updateReply(gameId, review.id, replyId, newContent)
+                            },
+                            onDeleteReply = { replyId ->
+                                reviewViewModel.deleteReply(gameId, review.id, replyId)
+                            }
                         )
                     }
                 }
@@ -481,17 +492,32 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
 fun ReviewInputSection(
     reviewContent: String,
     onContentChange: (String) -> Unit,
-    onSubmit: () -> Unit
+    onSubmit: () -> Unit,
+    onErrorShown: () -> Unit,
+    errorMessage: String? // <- add this parameter
 ) {
-    Text("Write a Review", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-    OutlinedTextField(
-        value = reviewContent,
-        onValueChange = onContentChange,
-        label = { Text("Your review") },
-        modifier = Modifier.fillMaxWidth()
-    )
-    Button(onClick = onSubmit, modifier = Modifier.padding(top = 8.dp)) {
-        Text("Submit Review")
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show the error message as a Snackbar
+    LaunchedEffect(errorMessage) {
+        if (!errorMessage.isNullOrEmpty()) {
+            snackbarHostState.showSnackbar(errorMessage)
+            onErrorShown()
+        }
+    }
+
+    Column {
+        SnackbarHost(hostState = snackbarHostState)
+        Text("Write a Review", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        OutlinedTextField(
+            value = reviewContent,
+            onValueChange = onContentChange,
+            label = { Text("Your review") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Button(onClick = onSubmit, modifier = Modifier.padding(top = 8.dp)) {
+            Text("Submit Review")
+        }
     }
 }
 
@@ -499,15 +525,22 @@ fun ReviewInputSection(
 fun ReviewCard(
     review: com.example.gamestore.data.model.Review,
     isOwn: Boolean,
+    isUserLoggedIn: Boolean,
     onUpdate: (String) -> Unit,
-    onDelete: () -> Unit,  // Add a parameter for the delete action
+    onDelete: () -> Unit,
     onUpvote: () -> Unit,
     onDownvote: () -> Unit,
     hasUpvoted: Boolean,
-    hasDownvoted: Boolean
+    hasDownvoted: Boolean,
+    onReply: (String) -> Unit,
+    onEditReply: (replyId: String, newContent: String) -> Unit,
+    onDeleteReply: (replyId: String) -> Unit
 ) {
     var editing by remember { mutableStateOf(false) }
     var updatedContent by remember { mutableStateOf(review.content) }
+
+    var replying by remember { mutableStateOf(false) }
+    var replyContent by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier
@@ -532,57 +565,118 @@ fun ReviewCard(
                 }
             } else {
                 Text(review.content)
-                if (isOwn) {
-                    Row {
+                // Voting
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onUpvote) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowUpward,
+                            contentDescription = "Upvote",
+                            tint = if (hasUpvoted) Color.Green else Color.Gray
+                        )
+                    }
+                    Text("${review.upvotes}")
+
+                    IconButton(onClick = onDownvote) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDownward,
+                            contentDescription = "Downvote",
+                            tint = if (hasDownvoted) Color.Red else Color.Gray
+                        )
+                    }
+                    Text("${review.downvotes}")
+                }
+                Row {
+                    if (isOwn) {
                         TextButton(onClick = { editing = true }) { Text("Edit") }
                         Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(onClick = onDelete) { Text("Delete") }  // Add the delete button
+                        TextButton(onClick = onDelete) { Text("Delete") }
+                    }
+                    // ✅ Add reply button
+                    if (isUserLoggedIn) {
+                        TextButton(onClick = { replying = !replying }) {
+                            Text(if (replying) "Cancel" else "Reply")
+                        }
+                    }
+                }
+                // ✅ Reply input section
+                if (replying) {
+                    OutlinedTextField(
+                        value = replyContent,
+                        onValueChange = { replyContent = it },
+                        label = { Text("Write a reply...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp)
+                    )
+                    Button(
+                        onClick = {
+                            onReply(replyContent)
+                            replyContent = ""
+                            replying = false
+                        },
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text("Submit Reply")
                     }
                 }
             }
-            Row {
-                // Upvote button
-                IconButton(
-                    onClick = {
-                        onUpvote()
-                    },
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowUpward,
-                        contentDescription = "Upvote",
-                        tint = if (hasUpvoted) Color.Green else Color.Gray,
-                    )
+            // ✅ Show Replies
+            if (review.replies.isNotEmpty()) {
+                Column(modifier = Modifier.padding(start = 8.dp)) {
+                    review.replies.forEach { reply ->
+                        var isEditingReply by remember { mutableStateOf(false) }
+                        var editedReplyContent by remember { mutableStateOf(reply.content) }
+                        Column(modifier = Modifier.padding(start = 8.dp)) {
+                            if (isEditingReply) {
+                                OutlinedTextField(
+                                    value = editedReplyContent,
+                                    onValueChange = { editedReplyContent = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Edit Reply") }
+                                )
+                                Row {
+                                    Button(onClick = {
+                                        onEditReply(reply.id, editedReplyContent)
+                                        isEditingReply = false
+                                    }) {
+                                        Text("Save")
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    TextButton(onClick = { isEditingReply = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            } else {
+                                Text("- ${reply.userEmail}: ${reply.content}")
+                                if (reply.userId == FirebaseAuth.getInstance().currentUser?.uid) {
+                                    ReplyActionButtons(
+                                        onEditClick = { isEditingReply = true },
+                                        onDeleteClick = { onDeleteReply(reply.id) },
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-                Text(
-                    text = "${review.upvotes}",
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-                // Downvote button
-                IconButton(
-                    onClick = {
-                        onDownvote()
-                    },
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowDownward,
-                        contentDescription = "Downvote",
-                        tint = if (hasDownvoted) Color.Red else Color.Gray
-                    )
-                }
-                Text(
-                    text = "${review.downvotes}",
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
             }
-            // Display replies
-            review.replies.forEach { reply ->
-                Text(
-                    "- ${reply.userId.take(6)}: ${reply.content}",
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
+        }
+    }
+}
+
+@Composable
+fun ReplyActionButtons(
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier = modifier) {
+        TextButton(onClick = onEditClick) {
+            Text("Edit")
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        TextButton(onClick = onDeleteClick) {
+            Text("Delete")
         }
     }
 }
