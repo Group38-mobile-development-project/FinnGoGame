@@ -35,6 +35,7 @@ interface GameApi {
     suspend fun searchGames(
         @Query("search") query: String,
         @Query("page") page: Int,
+        @Query("search_precise") precise: Boolean = false,
         @Query("page_size") pageSize: Int = 20,
     ): GameListResponse
 

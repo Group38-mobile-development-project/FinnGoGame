@@ -52,6 +52,11 @@ import java.util.Locale
 import com.example.gamestore.data.repository.ReviewRepository
 import com.example.gamestore.ui.ReviewViewModel
 import com.example.gamestore.ui.theme.DeepBlue
+import androidx.compose.material.icons.outlined.StarHalf
+import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.Color as ComposeColor
+
+
 
 @Composable
 fun GameDetailScreen( navController: NavHostController,  // Add NavController parameter
@@ -182,24 +187,33 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                             text = "Information",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(bottom = 12.dp)
                         )
 
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Platforms", fontWeight = FontWeight.Bold)
                                 Text(platformsText)
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
                                 Text("Genre", fontWeight = FontWeight.Bold)
                                 Text(genresText)
                             }
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(20.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Release date", fontWeight = FontWeight.Bold)
                                 Text(g.releaseDate)
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
                                 Text("Developer", fontWeight = FontWeight.Bold)
                                 Text(developersText)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text("Estimated Playtime", fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = if (g.estimatedPlaytime > 0)
+                                        "${g.estimatedPlaytime} hours"
+                                    else
+                                        "—",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
                         }
 
@@ -208,7 +222,6 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                         Text("Publisher", fontWeight = FontWeight.Bold)
                         Text(publishersText)
                         Spacer(modifier = Modifier.height(8.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -232,30 +245,40 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                 )
                             }
 
-                            // Right side: Rating stars in black
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                repeat((g.averageRating).toInt()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val rounded = (g.averageRating * 2).roundToInt() / 2.0
+                                val filledStars = rounded.toInt()
+                                val hasHalfStar = (rounded - filledStars) == 0.5
+                                val emptyStars = 5 - filledStars - if (hasHalfStar) 1 else 0
+
+                                // Full stars (Yellow)
+                                repeat(filledStars) {
                                     Icon(
                                         imageVector = Icons.Rounded.Star,
-                                        contentDescription = null,
-                                        tint = Color.Black,  // Black color for the stars
-                                        modifier = Modifier.size(24.dp) // Size of the stars
+                                        contentDescription = "Full Star",
+                                        tint = ComposeColor(0xFFFFD700),
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
-                                // Optionally handle partial stars
-                                if (g.averageRating % 1 != 0.0) {
+                                if (hasHalfStar) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.StarHalf,
+                                        contentDescription = "Half Star",
+                                        tint = ComposeColor(0xFFFFD700),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                repeat(emptyStars) {
                                     Icon(
                                         imageVector = Icons.Rounded.Star,
-                                        contentDescription = null,
-                                        tint = Color.Black,
-                                        modifier = Modifier.size(24.dp) // Size of the partial star
+                                        contentDescription = "Empty Star",
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                             }
-                        }
 
+                        }
                     }
 
                     HorizontalDivider(
