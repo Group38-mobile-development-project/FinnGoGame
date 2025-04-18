@@ -27,7 +27,7 @@ fun TopAppBar(
             actionIconContentColor = MaterialTheme.colorScheme.onPrimary // Action icon color
         ),
         title = {
-            Text("Game Review App demo")
+            Text("FinnGoGame")
         },
         navigationIcon = {
             IconButton(onClick = {

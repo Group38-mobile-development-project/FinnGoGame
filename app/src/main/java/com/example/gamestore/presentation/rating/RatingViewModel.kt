@@ -1,17 +1,10 @@
 package com.example.gamestore.presentation.rating
 
-
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import com.example.gamestore.data.model.Game
 import com.example.gamestore.data.model.GameRating
 import com.example.gamestore.data.users.RatingRepository
-import kotlinx.coroutines.flow.*
-
 
 class RatingViewModel(private val repository: RatingRepository) : ViewModel() {
 
@@ -24,15 +17,12 @@ class RatingViewModel(private val repository: RatingRepository) : ViewModel() {
         }
     }
 
-    fun submitRating(userId: String, gameId: String, rating: Double) {
-        repository.rateGame(userId, gameId, rating) {
-            if (it) {
-                fetchGameRating(gameId)
-                checkUserRated(userId, gameId)
-            }
+    fun submitRating(userId: String, gameId: String, rating: Double, previousRating: Double? = null) {
+        repository.rateGame(userId, gameId, rating, previousRating) {
+            fetchGameRating(gameId)
+            checkUserRated(userId, gameId)
         }
     }
-
 
     private val _userHasRated = MutableLiveData<Pair<Boolean, Double?>>()
     val userHasRated: LiveData<Pair<Boolean, Double?>> = _userHasRated

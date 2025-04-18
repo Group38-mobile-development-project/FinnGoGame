@@ -1,42 +1,32 @@
 package com.example.gamestore.data.users
 
-//import com.example.gamestore.data.mapper.RawGameMapper
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FieldValue
 import com.example.gamestore.data.model.GameRating
-
-import com.example.gamestore.data.model.Game
-import com.example.gamestore.data.network.ApiClient
-
-//
-import android.util.Log
-
-
-
 
 class RatingRepository(private val db: FirebaseFirestore) {
 
-    fun rateGame(userId: String, gameId: String, rating: Double, onComplete: (Boolean) -> Unit) {
+    fun rateGame(userId: String, gameId: String, rating: Double, previousRating: Double? = null, onComplete: (Boolean) -> Unit) {
         val gameRatingRef = db.collection("gameRatings").document(gameId)
         val userRatingRef =
             db.collection("users").document(userId).collection("ratings").document(gameId)
 
         db.runTransaction { transaction ->
             val snapshot = transaction.get(gameRatingRef)
-            val (newTotal, newSum) = if (snapshot.exists()) {
-                val total = snapshot.getLong("totalRatings") ?: 0
-                val sum = snapshot.getDouble("totalRatingValue") ?: 0.0
-                Pair(total + 1, sum + rating)
+            var total = snapshot.getLong("totalRatings") ?: 0
+            var sum = snapshot.getDouble("totalRatingValue") ?: 0.0
+            if (previousRating != null) {
+                sum = sum - previousRating + rating
             } else {
-                Pair(1L, rating)
+                // First time rating
+                total += 1
+                sum += rating
             }
-            val newAverage = newSum / newTotal
+            val newAverage = if (total > 0) sum / total else 0.0
 
             transaction.set(
                 gameRatingRef, mapOf(
-                    "totalRatings" to newTotal,
-                    "totalRatingValue" to newSum,
+                    "totalRatings" to total,
+                    "totalRatingValue" to sum,
                     "averageRating" to newAverage
                 )
             )
@@ -51,7 +41,7 @@ class RatingRepository(private val db: FirebaseFirestore) {
         }.addOnSuccessListener {
             //Log.d("RATE", "Transaction success")
             onComplete(true)
-        }.addOnFailureListener { e ->
+        }.addOnFailureListener {
             //Log.e("RATE", "Transaction failed: ${e.message}")
             onComplete(false)
         }

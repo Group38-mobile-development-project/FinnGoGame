@@ -86,8 +86,10 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             arguments = listOf(navArgument("gameId") { type = NavType.IntType })
         ) { backStackEntry ->
 
-            GameDetailScreen(navController = navController,
-            gameId = backStackEntry.arguments?.getInt("gameId") ?: 0)
+            GameDetailScreen(
+                navController = navController,
+                gameId = backStackEntry.arguments?.getInt("gameId") ?: 0
+            )
         }
 
         //platform

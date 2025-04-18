@@ -60,9 +60,7 @@ import androidx.compose.ui.graphics.Color as ComposeColor
 
 
 @Composable
-fun GameDetailScreen( navController: NavHostController,  // Add NavController parameter
-                      gameId: Int,
-                      onRatingUpdated: ((Double, Int) -> Unit)? = null) {
+fun GameDetailScreen( navController: NavHostController, gameId: Int) {
     val repository = remember { GameRepository() }
     val favoritesRepository = remember { FavoritesRepository() }
     var game by remember { mutableStateOf<Game?>(null) }
@@ -82,6 +80,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
             }
         }
     )
+    val gameRatingState by ratingViewModel.gameRating.observeAsState()
 
     val reviewViewModel: ReviewViewModel = viewModel(factory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -95,6 +94,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
         scope.launch {
             game = repository.getGameById(gameId)
             game?.let {
+                ratingViewModel.fetchGameRating(it.id.toString())
                 favoritesRepository.isFavorite(it.id) { result ->
                     isFavorite = result
                 }
@@ -233,7 +233,7 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                 horizontalAlignment = Alignment.Start
                             ) {
                                 Text(
-                                    text = "Rating", // Label above the rating number
+                                    text = "Rating (RAWG)", // Label above the rating number
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Gray // A neutral color for the label
@@ -251,7 +251,6 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                                 val filledStars = rounded.toInt()
                                 val hasHalfStar = (rounded - filledStars) == 0.5
                                 val emptyStars = 5 - filledStars - if (hasHalfStar) 1 else 0
-
                                 // Full stars (Yellow)
                                 repeat(filledStars) {
                                     Icon(
@@ -288,9 +287,53 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                             .height(1.dp),
                         color = Color.LightGray
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
 
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(horizontalAlignment = Alignment.Start) {
+                            Text(
+                                text = "Rating (FinnGoGame)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = String.format(Locale.getDefault(), "%.1f", gameRatingState?.averageRating ?: 0.0),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val appRounded = ((gameRatingState?.averageRating ?: 0.0) * 2).roundToInt() / 2.0
+                            val appFull = appRounded.toInt()
+                            val appHalf = (appRounded - appFull) == 0.5
+                            val appEmpty = 5 - appFull - if (appHalf) 1 else 0
+
+                            repeat(appFull) {
+                                Icon(Icons.Rounded.Star, "Full Star", tint = ComposeColor(0xFFFFD700), modifier = Modifier.size(20.dp))
+                            }
+                            if (appHalf) {
+                                Icon(Icons.AutoMirrored.Outlined.StarHalf, "Half Star", tint = ComposeColor(0xFFFFD700), modifier = Modifier.size(20.dp))
+                            }
+                            repeat(appEmpty) {
+                                Icon(Icons.Rounded.Star, "Empty Star", tint = Color.Gray, modifier = Modifier.size(20.dp))
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .padding(vertical = 6.dp)
+                            .height(1.dp),
+                        color = Color.LightGray
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     // Store section
                     Text("Buy on", fontWeight = FontWeight.Bold)
@@ -330,7 +373,6 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                             .height(1.dp),
                         color = Color.LightGray
                     )
-
 
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -378,56 +420,32 @@ fun GameDetailScreen( navController: NavHostController,  // Add NavController pa
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .padding(vertical = 6.dp)
-                            .height(1.dp),
-                        color = Color.LightGray
-                    )
-
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
+                    Spacer(modifier = Modifier.height(20.dp))
                     //rating section (Final rating area)
-                    val gameRatingState by ratingViewModel.gameRating.observeAsState()
                     val hasRatedState by ratingViewModel.userHasRated.observeAsState()
                     val hasRated = hasRatedState?.first ?: false
                     val previousRating = hasRatedState?.second
                     if (userId != null) {
                         ratingViewModel.checkUserRated(userId, g.id.toString())
                     }
-
                     GameRatingSection(
                         currentRating = previousRating ?: gameRatingState?.averageRating,
                         enabled = true,
-                        onRatingSelected = { ratingValue ->
-                            if (!hasRated) {
-                                val userIdCheck =
-                                    userId?: return@GameRatingSection
-                                val gameIdString = g.id.toString()
-                                ratingViewModel.submitRating(
-                                    userIdCheck,
-                                    gameIdString,
-                                    ratingValue
-                                )
-                                Toast.makeText(
-                                    context,
-                                    "Thanks for your rating!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                val ratedValue = previousRating?.toInt() ?: 0
-                                Toast.makeText(
-                                    context,
-                                    "You already rated $ratedValue ⭐!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                        onRatingSelected = { newRatingValue ->
+                            val userIdCheck = userId ?: return@GameRatingSection
+                            val gameIdString = g.id.toString()
+                            ratingViewModel.submitRating(
+                                userIdCheck,
+                                gameIdString,
+                                newRatingValue,
+                                previousRating // pass previousRating for edit detection
+                            )
+                            Toast.makeText(
+                                context,
+                                if (hasRated) "Rating updated!" else "Thanks for your rating!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-
                     )
                     Spacer(modifier = Modifier.height(32.dp))
                     ReviewInputSection(
