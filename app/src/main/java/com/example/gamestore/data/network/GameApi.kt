@@ -27,6 +27,7 @@ interface GameApi {
     suspend fun fetchGamesByGenre(
         @Query("genres") genre: String,
         @Query("page") page: Int,
+        @Query("ordering") ordering: String = "-rating",
         @Query("page_size") pageSize: Int = 20
     ): GameListResponse
 

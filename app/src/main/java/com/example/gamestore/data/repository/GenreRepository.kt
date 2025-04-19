@@ -28,36 +28,22 @@ class GenreRepository {
         }
     }
 
-    //load one page
-//    suspend fun getGamesByGenreSlug(slug: String): List<Game> {
-//        return try {
-//            val response = ApiClient.apiService.fetchGamesByGenre(
-//                genre = slug,
-//                page = 1,
-//                pageSize = 20
-//            )
-//
-//            val mapped = response.results.map {
-//                try {
-//                    RawGameMapper.fromDto(it)
-//                } catch (e: Exception) {
-//                    Log.e("DEBUG_MAPPER_ERROR", "Error mapping game ${it.title}: ${e.message}")
-//                    null
-//                }
-//            }.filterNotNull()
-//
-//            mapped
-//        } catch (e: Exception) {
-//            Log.e("DEBUG_API", "API error: ${e.message}")
-//            emptyList()
-//        }
-//    }
 
     //load all with paging
-    fun getGamesByGenrePaged(slug: String): Flow<PagingData<Game>> {
+
+//    fun getGamesByGenrePaged(slug: String): Flow<PagingData<Game>> {
+//        return Pager(
+//            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+//            pagingSourceFactory = { GenrePagingSource(ApiClient.apiService, slug) }
+//        ).flow
+//    }
+
+    fun getGamesByGenrePaged(slug: String, sort: String?): Flow<PagingData<Game>> {
         return Pager(
-            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            pagingSourceFactory = { GenrePagingSource(ApiClient.apiService, slug) }
+            config = PagingConfig(pageSize = 40, enablePlaceholders = false),
+            pagingSourceFactory = { GenrePagingSource(ApiClient.apiService, slug, sort
+            ) }
         ).flow
     }
+
 }
