@@ -1,3 +1,4 @@
+
 package com.example.gamestore.presentation.search
 
 import androidx.compose.foundation.background
@@ -23,9 +24,16 @@ import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GlobalSearchBar(
+// File: GlobalSearchBarWithFilters.kt
+fun GlobalSearchBarWithFilters(
     query: String,
     onQueryChange: (String) -> Unit,
+    genres: List<Pair<String, String>>,
+    platforms: List<Pair<String, String>>,
+    selectedGenre: String?,
+    onGenreSelected: (String?) -> Unit,
+    selectedPlatform: String?,
+    onPlatformSelected: (String?) -> Unit,
     modifier: Modifier = Modifier,
     onSearchDone: () -> Unit = {},
     autoFocus: Boolean = true
@@ -41,13 +49,7 @@ fun GlobalSearchBar(
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(2.dp, RoundedCornerShape(25.dp), clip = true)
-            .background(ForSearchBarBackgroundColor, RoundedCornerShape(25.dp))
-    ) {
+    Column(modifier = modifier.padding(16.dp)) {
         TextField(
             value = query,
             onValueChange = onQueryChange,
@@ -62,6 +64,8 @@ fun GlobalSearchBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
+                .shadow(2.dp, RoundedCornerShape(25.dp), clip = true)
+                .background(ForSearchBarBackgroundColor, RoundedCornerShape(25.dp))
                 .focusRequester(focusRequester),
             singleLine = true,
             shape = RoundedCornerShape(25.dp),
@@ -79,11 +83,68 @@ fun GlobalSearchBar(
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurface
+                unfocusedIndicatorColor = Color.Transparent
             )
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            FilterDropdown(
+                label = "Genre",
+                items = genres,
+                selectedItem = selectedGenre,
+                onItemSelected = onGenreSelected
+            )
+
+            FilterDropdown(
+                label = "Platform",
+                items = platforms,
+                selectedItem = selectedPlatform,
+                onItemSelected = onPlatformSelected
+            )
+        }
+    }
+}
+
+@Composable
+fun FilterDropdown(
+    label: String,
+    items: List<Pair<String, String>>,
+    selectedItem: String?,
+    onItemSelected: (String?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedDisplay = items.find { it.first == selectedItem }?.second ?: label
+
+    Box(modifier = modifier) {
+        OutlinedButton(onClick = { expanded = true }) {
+            Text(selectedDisplay)
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .heightIn(max = 300.dp)
+        ) {
+            DropdownMenuItem(
+                text = { Text("All") },
+                onClick = {
+                    onItemSelected(null)
+                    expanded = false
+                }
+            )
+            items.forEach { (value, displayText) ->
+                DropdownMenuItem(
+                    text = { Text(displayText) },
+                    onClick = {
+                        onItemSelected(value)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }

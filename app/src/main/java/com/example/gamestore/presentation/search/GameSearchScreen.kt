@@ -17,6 +17,9 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.example.gamestore.presentation.game.GameListItem
+import com.example.gamestore.data.model.Genre
+import com.example.gamestore.data.model.Platform
+import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +29,12 @@ fun GameSearchScreen(
     onGameClick: (Int) -> Unit
 ) {
     val query by viewModel.query.collectAsState()
-    val pagingFlow = viewModel.searchResults.collectAsState().value
+    val selectedGenre by viewModel.genre.collectAsState()
+    val selectedPlatform by viewModel.platform.collectAsState()
+    val genres by viewModel.genres.collectAsState()
+    val platforms by viewModel.platforms.collectAsState()
+
+    val pagingFlow by viewModel.searchResults.collectAsState()
     val pagingItems = pagingFlow.collectAsLazyPagingItems()
 
     Scaffold(
@@ -39,12 +47,15 @@ fun GameSearchScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            GlobalSearchBar(
+            GlobalSearchBarWithFilters(
                 query = query,
-                onQueryChange = {
-                    //Log.d("QUERY", "Searching: $it")
-                    viewModel.onQueryChange(it)
-                }
+                onQueryChange = { viewModel.onQueryChange(it) },
+                genres = genres.map { it.identifier to it.title },
+                platforms = platforms.map { it.id.toString() to it.name },
+                selectedGenre = selectedGenre,
+                onGenreSelected = { viewModel.onGenreSelected(it) },
+                selectedPlatform = selectedPlatform,
+                onPlatformSelected = { viewModel.onPlatformSelected(it) }
             )
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -91,3 +102,4 @@ fun GameSearchScreen(
         }
     }
 }
+

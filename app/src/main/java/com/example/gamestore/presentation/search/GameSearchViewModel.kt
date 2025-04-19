@@ -3,51 +3,55 @@ package com.example.gamestore.presentation.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.example.gamestore.data.model.Game
-import com.example.gamestore.data.network.ApiClient
-import com.example.gamestore.data.paging.GameSearchPagingSource
+import com.example.gamestore.data.model.Genre
+import com.example.gamestore.data.model.Platform
 import com.example.gamestore.data.repository.GameRepository
+import com.example.gamestore.data.repository.GenreRepository
+import com.example.gamestore.data.repository.PlatformRepository
 import kotlinx.coroutines.flow.*
-import android.util.Log
+import kotlinx.coroutines.launch
 
 class GameSearchViewModel(
-    private val repository: GameRepository = GameRepository()
+    private val gameRepository: GameRepository = GameRepository(),
+    private val genreRepository: GenreRepository = GenreRepository(),
+    private val platformRepository: PlatformRepository = PlatformRepository()
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
 
-    fun onQueryChange(newQuery: String) {
-        //Log.d("QUERY", "New query input: $newQuery")
-        _query.value = newQuery
-    }
+    private val _genre = MutableStateFlow<String?>(null)
+    val genre: StateFlow<String?> = _genre
 
-    private fun cleanQuery(input: String): String {
-        return input.trim()
-            .lowercase()
-            .replace(Regex("[^a-z0-9\\s]"), "") // Remove special characters, keep spaces
-            .replace(Regex("\\s+"), " ") // Replace multiple spaces with a single space
-    }
+    private val _platform = MutableStateFlow<String?>(null)
+    val platform: StateFlow<String?> = _platform
 
-    val searchResults: StateFlow<Flow<PagingData<Game>>> = query
-        .debounce(300)
-        .distinctUntilChanged()
-        .map { originalQuery ->
-            val cleanedQuery = cleanQuery(originalQuery)
-            //Log.d("QUERY", "Cleaned query: $cleanedQuery")
-            if (cleanedQuery.isBlank()) {
-                //Log.d("QUERY", "Empty query, returning empty Pager")
-                Pager(PagingConfig(pageSize = 60, enablePlaceholders = false)) {
-                    GameSearchPagingSource(ApiClient.apiService, "")
-                }.flow
-            } else {
-                //Log.d("QUERY", "Searching for: $cleanedQuery")
-                repository.searchGames(cleanedQuery)
-            }
+    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
+    val genres: StateFlow<List<Genre>> = _genres
+
+    private val _platforms = MutableStateFlow<List<Platform>>(emptyList())
+    val platforms: StateFlow<List<Platform>> = _platforms
+
+    init {
+        viewModelScope.launch {
+            _genres.value = genreRepository.getGenres()
+            _platforms.value = platformRepository.getPlatforms()
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), repository.searchGames(""))
+    }
+
+    fun onQueryChange(newQuery: String) { _query.value = newQuery }
+    fun onGenreSelected(newGenre: String?) { _genre.value = newGenre }
+    fun onPlatformSelected(newPlatform: String?) { _platform.value = newPlatform }
+
+    val searchResults: StateFlow<Flow<PagingData<Game>>> =
+        combine(_query, _genre, _platform) { q, g, p -> Triple(q, g, p) }
+            .debounce(300)
+            .distinctUntilChanged()
+            .map { (q, g, p) ->
+                val cleaned = q.trim().lowercase().replace(Regex("[^a-z0-9\\s]"), "").replace(Regex("\\s+"), " ")
+                gameRepository.searchGames(cleaned, g, p)
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyFlow())
 }

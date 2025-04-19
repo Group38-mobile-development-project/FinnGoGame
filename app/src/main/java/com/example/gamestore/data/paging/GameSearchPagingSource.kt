@@ -11,28 +11,23 @@ import java.io.IOException
 
 class GameSearchPagingSource(
     private val api: GameApi,
-    private val query: String
+    private val query: String,
+    private val genre: String? = null,
+    private val platform: String? = null
 ) : PagingSource<Int, Game>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Game> {
         return try {
             val page = params.key ?: 1
-            val pageSize = params.loadSize
-            Log.d("SEARCH_API", "Loading page $page for query: $query, pageSize: $pageSize")
-
-            // Always use search_precise=false for broader results
-            val response = api.searchGames(
+            val response = api.searchGamesAdvanced(
                 query = query,
-                precise = false,
+                genre = genre,
+                platform = platform,
                 page = page,
-                pageSize = pageSize
+                pageSize = params.loadSize,
+                precise = false
             )
 
-
-            // Log the raw response to debug
-            //Log.d("SEARCH_API", "Raw response: count=${response.count}, results=${response.results?.size ?: 0}")
-
-            // Map results with null safety and error handling
             val games = response.results?.mapNotNull { dto ->
                 try {
                     RawGameMapper.fromDto(dto)
@@ -41,25 +36,20 @@ class GameSearchPagingSource(
                 }
             } ?: emptyList()
 
-            //Log.d("SEARCH_API", "Mapped ${games.size} games for query: $query")
-
             LoadResult.Page(
                 data = games,
                 prevKey = if (page == 1) null else page - 1,
                 nextKey = if (games.isEmpty()) null else page + 1
             )
         } catch (e: HttpException) {
-            //Log.e("SEARCH_API", "HTTP error: ${e.code()} - ${e.message()}", e)
             LoadResult.Error(e)
         } catch (e: IOException) {
-            //Log.e("SEARCH_API", "Network error: ${e.message}", e)
             LoadResult.Error(e)
         } catch (e: Exception) {
             //Log.e("SEARCH_API", "Unexpected error: ${e.message}", e)
             LoadResult.Error(e)
         }
     }
-
     override fun getRefreshKey(state: PagingState<Int, Game>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)

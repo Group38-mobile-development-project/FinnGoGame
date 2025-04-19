@@ -23,10 +23,18 @@ class GameRepository {
     }
 
     //add search
-    fun searchGames(query: String): Flow<PagingData<Game>> {
+
+    fun searchGames(query: String, genre: String?, platform: String?): Flow<PagingData<Game>> {
         return Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            pagingSourceFactory = { GameSearchPagingSource(api = ApiClient.apiService, query) }
+            pagingSourceFactory = {
+                GameSearchPagingSource(
+                    api = ApiClient.apiService,
+                    query = query,
+                    genre = genre,
+                    platform = platform
+                )
+            }
         ).flow
     }
 
@@ -58,7 +66,5 @@ class GameRepository {
             emptyList()
         }
     }
-
-
 }
 
