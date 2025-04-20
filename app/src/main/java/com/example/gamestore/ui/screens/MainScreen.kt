@@ -50,12 +50,14 @@ fun MainScreen(
                     text = "Welcome",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    //color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground //change following mode
                 )
                 Text(
                     text = "What would you like to play?",
                     fontSize = 20.sp,
-                    color = Color.Black
+                    //color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -72,7 +74,8 @@ fun MainScreen(
                 text = "Top Rated Games",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                //color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
             )
 
@@ -99,7 +102,8 @@ fun MainScreen(
                     text = "All Games",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    //color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background)

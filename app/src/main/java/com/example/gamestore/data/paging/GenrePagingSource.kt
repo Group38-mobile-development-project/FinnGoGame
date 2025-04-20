@@ -9,8 +9,7 @@ import com.example.gamestore.data.network.GameApi
 
 class GenrePagingSource(
     private val apiService: GameApi,
-    private val genreSlug: String,
-    private val sort: String?
+    private val genreSlug: String
 ) : PagingSource<Int, Game>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Game> {
@@ -20,15 +19,9 @@ class GenrePagingSource(
         return try {
             val response = apiService.fetchGamesByGenre(
                 genre = genreSlug,
-//                ordering = sort ?: "",
-                ordering = when (sort) {
-                    "name" -> "name"
-                    "rating" -> "-rating"
-                    else -> "" // default
-                },
                 page = page,
                 pageSize = pageSize
-                )
+            )
             val mappedGames = response.results.map { RawGameMapper.fromDto(it) }
 
             //Log.d("GENRE_PAGING", "Loaded page $page with ${mappedGames.size} games for genre '$genreSlug'")

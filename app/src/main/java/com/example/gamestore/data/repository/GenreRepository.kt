@@ -28,22 +28,11 @@ class GenreRepository {
         }
     }
 
-
     //load all with paging
-
-//    fun getGamesByGenrePaged(slug: String): Flow<PagingData<Game>> {
-//        return Pager(
-//            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-//            pagingSourceFactory = { GenrePagingSource(ApiClient.apiService, slug) }
-//        ).flow
-//    }
-
-    fun getGamesByGenrePaged(slug: String, sort: String?): Flow<PagingData<Game>> {
+    fun getGamesByGenrePaged(slug: String): Flow<PagingData<Game>> {
         return Pager(
-            config = PagingConfig(pageSize = 40, enablePlaceholders = false),
-            pagingSourceFactory = { GenrePagingSource(ApiClient.apiService, slug, sort
-            ) }
+            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+            pagingSourceFactory = { GenrePagingSource(ApiClient.apiService, slug) }
         ).flow
     }
-
 }

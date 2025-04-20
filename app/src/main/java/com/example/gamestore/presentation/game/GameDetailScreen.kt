@@ -242,8 +242,9 @@ fun GameDetailScreen( navController: NavHostController, gameId: Int) {
                                     text = String.format(Locale.getDefault(),"%.1f", g.averageRating), // Display the rating number
                                     fontSize = 20.sp, // Make it big
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.Black // Black color for the rating number
-                                )
+                                    //color = Color.Black // Black color for the rating number
+                                    color = MaterialTheme.colorScheme.onBackground
+                                    )
                             }
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -305,7 +306,8 @@ fun GameDetailScreen( navController: NavHostController, gameId: Int) {
                                 text = String.format(Locale.getDefault(), "%.1f", gameRatingState?.averageRating ?: 0.0),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black
+                                //color = Color.Black
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
 

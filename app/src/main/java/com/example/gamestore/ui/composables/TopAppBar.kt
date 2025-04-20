@@ -6,6 +6,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -14,7 +16,9 @@ fun TopAppBar(
     onNavigateToHome: () -> Unit,
     onNavigateToGenre: () -> Unit,
     onNavigateToPlatform: () -> Unit,
-    onNavigateToForumPage: () -> Unit
+    onNavigateToForumPage: () -> Unit,
+    onToggleTheme: () -> Unit,
+    isDarkTheme: Boolean
 ) {
     val scope = rememberCoroutineScope()
     var menuExpanded by remember { mutableStateOf(false) }
@@ -42,6 +46,15 @@ fun TopAppBar(
             }
         },
         actions = {
+            // Theme toggle icon
+            IconButton(onClick = onToggleTheme) {
+                Icon(
+                    imageVector = if (isDarkTheme) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                    contentDescription = "Toggle Theme"
+                )
+            }
+
+            // Menu icon
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Filled.Menu,

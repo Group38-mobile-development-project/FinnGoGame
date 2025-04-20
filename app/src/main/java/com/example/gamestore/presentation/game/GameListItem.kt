@@ -30,7 +30,7 @@ fun GameListItem(
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.LightGray
+            containerColor = Color.Gray
         )
         ) {
         Row(modifier = Modifier.padding(12.dp)) {
@@ -76,7 +76,7 @@ fun GameListItem(
                         Icon(
                             imageVector = Icons.Rounded.Star,
                             contentDescription = "Empty Star",
-                            tint = Color.Gray,
+                            tint = Color.LightGray,
                             modifier = Modifier.size(20.dp)
                         )
                     }

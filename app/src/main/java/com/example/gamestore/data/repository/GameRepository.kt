@@ -55,7 +55,7 @@ class GameRepository {
         return try {
             val result = ApiClient.apiService.getGamesSorted(
                 ordering = "-rating",
-                pageSize = 8
+                pageSize = 10
             )
             //Log.d("GameRepository", "Before mapping: ${result.results.size}")
             val mapped = result.results.map { RawGameMapper.fromDto(it) }
