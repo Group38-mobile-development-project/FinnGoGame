@@ -33,7 +33,7 @@ FinnGoGame is a mobile app that allows users to discover, rate, review, and save
 ### 📅 Screen Archetypes
 - **Login/Signup Screen**: Authenticates the user
 - **Main Screen (Home)**: Shows top-rated and all games with a search bar
-- **Game Detail Screen**: Displays description, image, and ratings
+- **Game Detail Screen**: Displays description, image, ratings, and review
 - **Favorites Screen**: Displays user-saved favorite games
 - **Search Screen**: Enables search and filtered results
 - **Genre/Platform Screens**: Allows exploration by category
