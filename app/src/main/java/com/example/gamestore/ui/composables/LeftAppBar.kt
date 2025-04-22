@@ -71,12 +71,12 @@ fun LeftAppBar(
             )
 
 
-            NavigationDrawerItem(
-                label = { Text("ShoppingCart") },
-                selected = false,
-                icon = { Icon(Icons.Outlined.ShoppingCart, contentDescription = null) },
-                onClick = { /* Handle shopping cart */ }
-            )
+//            NavigationDrawerItem(
+//                label = { Text("ShoppingCart") },
+//                selected = false,
+//                icon = { Icon(Icons.Outlined.ShoppingCart, contentDescription = null) },
+//                onClick = { /* Handle shopping cart */ }
+//            )
             if (auth.currentUser != null){
             NavigationDrawerItem(
                 label = { Text("Favorites") },
