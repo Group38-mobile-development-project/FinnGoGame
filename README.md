@@ -94,7 +94,7 @@ This modular structure keeps data concerns separated and scalable.
 ### UI Components
 - `TopAppBar.kt`: Includes menu, theme toggle, and drawer control
 - `LeftAppBar.kt`: Drawer with navigation and auth-aware actions
-- `MenuDropdown.kt`: Genre/Platform/Forum menu popup
+- `MenuBar.kt`: Genre/Platform/Forum menu popup
 
 ### Screens
 - `MainScreen.kt`: Home screen with top-rated games and list
