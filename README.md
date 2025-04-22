@@ -113,7 +113,6 @@ This modular structure keeps data concerns separated and scalable.
 
 ## 🌐 Future Improvements
 - Edit user profile with image and bio
-- Full-featured forum (commenting, likes)
 - Game trailers and YouTube integration
 - Push notifications for new top-rated games
 
