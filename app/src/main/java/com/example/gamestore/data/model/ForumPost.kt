@@ -1,6 +1,7 @@
 package com.example.gamestore.data.model
 
 data class ForumPost(
+    val id: String = "",         // ← new
     val userId: String = "",
     val username: String = "",
     val gameId: String = "",

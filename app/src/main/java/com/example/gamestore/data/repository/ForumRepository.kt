@@ -1,3 +1,4 @@
+// com/example/gamestore/data/repository/ForumRepository.kt
 package com.example.gamestore.data.repository
 
 import android.util.Log
@@ -8,25 +9,30 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
+
+
 fun fetchForumPosts(): LiveData<List<ForumPost>> {
-    val firestore = FirebaseFirestore.getInstance()
-    val postsLiveData = MutableLiveData<List<ForumPost>>()
-
-    firestore.collection("forum_posts")
-        .orderBy("timestamp", Query.Direction.DESCENDING)  // Sort posts by the timestamp
-        .get()
-        .addOnSuccessListener { result ->
-            val posts = result.map { document ->
-                document.toObject(ForumPost::class.java) // Convert Firestore document to ForumPost
+    val liveData = MutableLiveData<List<ForumPost>>()
+    FirebaseFirestore.getInstance()
+        .collection("forum_posts")
+        .orderBy("timestamp", Query.Direction.DESCENDING)
+        .addSnapshotListener { snapshots, error ->
+            if (error != null) {
+                Log.e("ForumRepo", "Listen failed", error)
+                return@addSnapshotListener
             }
-            postsLiveData.postValue(posts)
+            snapshots?.documents?.let { docs ->
+                val posts = docs.mapNotNull { doc ->
+                    // Deserialize into your data class, then inject the Firestore doc ID
+                    doc.toObject(ForumPost::class.java)
+                        ?.copy(id = doc.id)
+                }
+                liveData.value = posts
+            }
         }
-        .addOnFailureListener { exception ->
-            Log.e("Forum", "Error getting documents: ", exception)
-        }
-
-    return postsLiveData
+    return liveData
 }
+
 
 fun postNewForumMessage(title: String, content: String) {
     // Log userId and username to check if they are being correctly retrieved
@@ -59,6 +65,15 @@ fun postNewForumMessage(title: String, content: String) {
             // Handle failure
             Log.e("Forum", "Error adding post: ", exception)
         }
+}
+
+fun deleteForumPost(postId: String, onComplete: (Boolean) -> Unit) {
+    FirebaseFirestore.getInstance()
+        .collection("forum_posts")
+        .document(postId)
+        .delete()
+        .addOnSuccessListener { onComplete(true) }
+        .addOnFailureListener { onComplete(false) }
 }
 
 
