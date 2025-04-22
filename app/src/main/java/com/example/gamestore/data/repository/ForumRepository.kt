@@ -37,8 +37,11 @@ fun fetchForumPosts(): LiveData<List<ForumPost>> {
 fun postNewForumMessage(title: String, content: String) {
     // Log userId and username to check if they are being correctly retrieved
     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "Unknown User"
-    val username = FirebaseAuth.getInstance().currentUser?.displayName ?: "Anonymous"
-
+    val user = FirebaseAuth.getInstance().currentUser
+    val username = user?.displayName?.takeIf { it.isNotBlank() }
+        ?: user?.email?.takeIf { it.isNotBlank() }
+        ?: "Anonymous"
+    
     // Log the values of userId and username to make sure they're correct
     Log.d("Forum", "userId: $userId, username: $username")
 

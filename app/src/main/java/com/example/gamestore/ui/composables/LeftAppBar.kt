@@ -58,7 +58,7 @@ fun LeftAppBar(
 
             HorizontalDivider()
 
-            Text("Shop", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
+            Text("Account", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
 
             NavigationDrawerItem(
                 label = { Text("Home") },
