@@ -129,11 +129,11 @@ $ git clone https://github.com/Group38-mobile-development-project/GameStore.git
 ```
 
 ## ✨ Figma
-https://www.figma.com/design/qpacu3kVFz7cmwDu3HxSh1/MobileDevProjectFigmaGroup38?node-id=0-1&p=f&t=bpsysR6q2GyEcBc1-0
+- https://www.figma.com/design/qpacu3kVFz7cmwDu3HxSh1/MobileDevProjectFigmaGroup38?node-id=0-1&p=f&t=bpsysR6q2GyEcBc1-0
 ---
 
 ## ✨ Project Board
-https://github.com/orgs/Group38-mobile-development-project/projects/4
+- https://github.com/orgs/Group38-mobile-development-project/projects/4
 ---
 
 ## 🚀 Author
