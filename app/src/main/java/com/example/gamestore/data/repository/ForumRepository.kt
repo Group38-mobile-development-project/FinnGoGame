@@ -28,16 +28,21 @@ fun fetchForumPosts(): LiveData<List<ForumPost>> {
     return postsLiveData
 }
 
-// Let users post new discussions. This writes the data to Firestore.
 fun postNewForumMessage(title: String, content: String) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    // Log userId and username to check if they are being correctly retrieved
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "Unknown User"
     val username = FirebaseAuth.getInstance().currentUser?.displayName ?: "Anonymous"
+
+    // Log the values of userId and username to make sure they're correct
+    Log.d("Forum", "userId: $userId, username: $username")
+
     val timestamp = System.currentTimeMillis()
 
+    // Create a new ForumPost object with the retrieved user info
     val newPost = ForumPost(
         userId = userId,
         username = username,
-        gameId = "game123",  // This should be the ID or name of the game
+        gameId = "game123",  // You can replace this with actual game ID if needed
         title = title,
         content = content,
         timestamp = timestamp
@@ -55,6 +60,8 @@ fun postNewForumMessage(title: String, content: String) {
             Log.e("Forum", "Error adding post: ", exception)
         }
 }
+
+
 
 
 

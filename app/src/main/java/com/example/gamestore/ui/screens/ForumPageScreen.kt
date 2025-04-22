@@ -28,7 +28,7 @@ fun ForumPageScreen(
 ) {
     var posts by remember { mutableStateOf<List<ForumPost>>(emptyList()) }
     var isPosting by remember { mutableStateOf(false) }  // Handle loading state for posting
-    val postsLiveData = fetchForumPosts()
+    var postsLiveData = fetchForumPosts()
     val postsFromLiveData by postsLiveData.observeAsState(emptyList())
 
     // Observing posts live data
@@ -42,7 +42,7 @@ fun ForumPageScreen(
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         // Header
-        Text("Forum", fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        Text("Forum Page", fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -95,6 +95,8 @@ fun ForumPageScreen(
                     title = ""  // Clear title after posting
                     content = ""  // Clear content after posting
                     isPosting = false  // Reset the posting flag
+                    // Trigger the data refresh
+                    postsLiveData = fetchForumPosts()
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -102,6 +104,7 @@ fun ForumPageScreen(
         ) {
             Text("Post Message")
         }
+
 
         // Loading State when posting
         if (isPosting) {
@@ -123,7 +126,7 @@ fun ForumPageScreen(
 fun ForumPostItem(post: ForumPost) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(post.title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text("By: ${post.userId}", fontSize = 14.sp, color = Color.Gray)
+        Text("By: ${post.username}", fontSize = 14.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(8.dp))
         Text(post.content, fontSize = 16.sp)
         Spacer(modifier = Modifier.height(8.dp))

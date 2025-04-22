@@ -6,5 +6,6 @@ data class ForumPost(
     val gameId: String = "",
     val title: String = "",
     val content: String = "",
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val comments: List<String> = emptyList()  // Add this line if comments is a list of strings
 )
