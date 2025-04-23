@@ -15,6 +15,7 @@ data class Reply(
     val id: String = "",
     val userId: String = "",
     val userEmail: String = "",
+    val reviewOwnerId: String = "",
     val content: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )
