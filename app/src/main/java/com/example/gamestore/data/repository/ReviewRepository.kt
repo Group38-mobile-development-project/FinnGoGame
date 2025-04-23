@@ -93,14 +93,26 @@ class ReviewRepository {
             .document(userId)
             .collection("reviews")
             .document(gameId.toString())
-        val votesRef = reviewRef.collection("votes")
-            .document(userId)
-        db.runBatch { batch ->
-            batch.delete(reviewRef)
-            batch.delete(userReviewRef)
-            batch.delete(votesRef)
-        }.addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
+
+        // Fetch and delete replies and votes first
+        reviewRef.collection("replies").get().addOnSuccessListener { replySnap ->
+            reviewRef.collection("votes").get().addOnSuccessListener { voteSnap ->
+                db.runBatch { batch ->
+                    // Delete replies
+                    for (doc in replySnap) {
+                        batch.delete(doc.reference)
+                    }
+                    // Delete votes
+                    for (doc in voteSnap) {
+                        batch.delete(doc.reference)
+                    }
+                    // Delete the review and its copy under user's reviews
+                    batch.delete(reviewRef)
+                    batch.delete(userReviewRef)
+                }.addOnSuccessListener { onComplete(true) }
+                    .addOnFailureListener { onComplete(false) }
+            }.addOnFailureListener { onComplete(false) }
+        }.addOnFailureListener { onComplete(false) }
     }
 
     fun submitReply(gameId: Int, reviewId: String, content: String, onComplete: (Boolean) -> Unit) {
@@ -180,10 +192,7 @@ class ReviewRepository {
             .document(gameId.toString())
             .collection("userReviews")
             .document(reviewId)
-        val userReviewRef = db.collection("users")
-            .document(userId)
-            .collection("reviews")
-            .document(gameId.toString())
+
         val voteRef = reviewRef
             .collection("votes")
             .document(userId)
@@ -195,40 +204,22 @@ class ReviewRepository {
             val voteSnap = transaction.get(voteRef)
 
             if (voteSnap.exists()) {
-                // If vote exists, check if the user is changing the vote
                 val previousVote = voteSnap.getBoolean("isUpvote")
                 if (previousVote == isUpvote) {
-                    // Cancel the vote
+                    // Cancel vote
                     transaction.update(
                         reviewRef,
                         if (isUpvote) "upvotes" else "downvotes",
                         (if (isUpvote) currentUpvotes else currentDownvotes) - 1
                     )
                     transaction.delete(voteRef)
-                    transaction.update(
-                        userReviewRef,
-                        if (isUpvote) "upvotes" else "downvotes",
-                        (if (isUpvote) currentUpvotes else currentDownvotes) - 1
-                    )
                 } else {
                     // Switch vote
-                    transaction.update(
-                        reviewRef,
-                        "upvotes", if (isUpvote) currentUpvotes + 1 else currentUpvotes - 1
-                    )
-                    transaction.update(
-                        reviewRef,
-                        "downvotes", if (isUpvote) currentDownvotes - 1 else currentDownvotes + 1
-                    )
+                    transaction.update(reviewRef, mapOf(
+                        "upvotes" to if (isUpvote) currentUpvotes + 1 else currentUpvotes - 1,
+                        "downvotes" to if (isUpvote) currentDownvotes - 1 else currentDownvotes + 1
+                    ))
                     transaction.update(voteRef, mapOf("isUpvote" to isUpvote))
-                    transaction.update(
-                        userReviewRef,
-                        "upvotes", if (isUpvote) currentUpvotes + 1 else currentUpvotes - 1
-                    )
-                    transaction.update(
-                        userReviewRef,
-                        "downvotes", if (isUpvote) currentDownvotes - 1 else currentDownvotes + 1
-                    )
                 }
             } else {
                 // First-time vote
@@ -238,11 +229,6 @@ class ReviewRepository {
                     (if (isUpvote) currentUpvotes else currentDownvotes) + 1
                 )
                 transaction.set(voteRef, mapOf("userId" to userId, "isUpvote" to isUpvote))
-                transaction.update(
-                    userReviewRef,
-                    if (isUpvote) "upvotes" else "downvotes",
-                    (if (isUpvote) currentUpvotes else currentDownvotes) + 1
-                )
             }
         }.addOnSuccessListener { onComplete(true) }
             .addOnFailureListener { onComplete(false) }
