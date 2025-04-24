@@ -3,11 +3,11 @@ package com.example.gamestore.ui.composables
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.ChatBubble
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.material.icons.outlined.Devices
-import androidx.compose.material.icons.outlined.ChatBubble
 
 @Composable
 fun MenuDropdown(

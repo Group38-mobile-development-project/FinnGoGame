@@ -40,7 +40,7 @@ fun MainScreen(
     val topRatedGames = viewModel.topRatedGames.collectAsState().value
     val isLoading = viewModel.isLoading.collectAsState().value
     val errorMessage = viewModel.errorMessage.collectAsState().value
-
+// just checking my email
     LazyColumn(
         modifier = modifier.fillMaxSize()
     ) {
