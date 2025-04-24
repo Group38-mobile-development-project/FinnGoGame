@@ -93,20 +93,19 @@ class ReviewRepository {
             .document(userId)
             .collection("reviews")
             .document(gameId.toString())
-
-        // Fetch and delete replies and votes first
-        reviewRef.collection("replies").get().addOnSuccessListener { replySnap ->
-            reviewRef.collection("votes").get().addOnSuccessListener { voteSnap ->
+        // Fetch subcollections: votes and replies
+        reviewRef.collection("votes").get().addOnSuccessListener { voteSnap ->
+            reviewRef.collection("replies").get().addOnSuccessListener { replySnap ->
                 db.runBatch { batch ->
-                    // Delete replies
-                    for (doc in replySnap) {
+                    // Delete each vote
+                    for (doc in voteSnap.documents) {
                         batch.delete(doc.reference)
                     }
-                    // Delete votes
-                    for (doc in voteSnap) {
+                    // Delete each reply
+                    for (doc in replySnap.documents) {
                         batch.delete(doc.reference)
                     }
-                    // Delete the review and its copy under user's reviews
+                    // Delete review and user's review reference
                     batch.delete(reviewRef)
                     batch.delete(userReviewRef)
                 }.addOnSuccessListener { onComplete(true) }
@@ -118,28 +117,30 @@ class ReviewRepository {
     fun submitReply(gameId: Int, reviewId: String, content: String, onComplete: (Boolean) -> Unit) {
         val userId = auth.currentUser?.uid ?: return onComplete(false)
         val userEmail = auth.currentUser?.email ?: return onComplete(false)
-        val replyId = db.collection("reviews")
+        val reviewRef = db.collection("reviews")
             .document(gameId.toString())
             .collection("userReviews")
             .document(reviewId)
-            .collection("replies")
-            .document().id
-        val reply = mapOf(
-            "id" to replyId,
-            "userId" to userId,
-            "userEmail" to userEmail,
-            "content" to content,
-            "timestamp" to System.currentTimeMillis()
-        )
-        db.collection("reviews")
-            .document(gameId.toString())
-            .collection("userReviews")
-            .document(reviewId)
-            .collection("replies")
-            .document(replyId)
-            .set(reply)
-            .addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
+        // First, fetch the review to get the owner's userId
+        reviewRef.get().addOnSuccessListener { reviewSnap ->
+            val reviewOwnerId = reviewSnap.getString("userId") ?: return@addOnSuccessListener onComplete(false)
+            val replyId = reviewRef.collection("replies").document().id
+            val reply = mapOf(
+                "id" to replyId,
+                "userId" to userId,
+                "userEmail" to userEmail,
+                "reviewOwnerId" to reviewOwnerId,
+                "content" to content,
+                "timestamp" to System.currentTimeMillis()
+            )
+            reviewRef.collection("replies")
+                .document(replyId)
+                .set(reply)
+                .addOnSuccessListener { onComplete(true) }
+                .addOnFailureListener { onComplete(false) }
+        }.addOnFailureListener {
+            onComplete(false)
+        }
     }
 
     fun editReply(
@@ -187,51 +188,64 @@ class ReviewRepository {
         onComplete: (Boolean) -> Unit
     ) {
         val userId = auth.currentUser?.uid ?: return onComplete(false)
-
         val reviewRef = db.collection("reviews")
             .document(gameId.toString())
             .collection("userReviews")
             .document(reviewId)
 
-        val voteRef = reviewRef
-            .collection("votes")
-            .document(userId)
+        // First fetch the review to get reviewOwnerId
+        reviewRef.get().addOnSuccessListener { reviewSnap ->
+            val reviewOwnerId = reviewSnap.getString("userId") ?: return@addOnSuccessListener onComplete(false)
 
-        db.runTransaction { transaction ->
-            val reviewSnap = transaction.get(reviewRef)
-            val currentUpvotes = reviewSnap.getLong("upvotes") ?: 0
-            val currentDownvotes = reviewSnap.getLong("downvotes") ?: 0
-            val voteSnap = transaction.get(voteRef)
+            val voteRef = reviewRef
+                .collection("votes")
+                .document(userId)
 
-            if (voteSnap.exists()) {
-                val previousVote = voteSnap.getBoolean("isUpvote")
-                if (previousVote == isUpvote) {
-                    // Cancel vote
+            db.runTransaction { transaction ->
+                val currentUpvotes = reviewSnap.getLong("upvotes") ?: 0
+                val currentDownvotes = reviewSnap.getLong("downvotes") ?: 0
+                val voteSnap = transaction.get(voteRef)
+
+                if (voteSnap.exists()) {
+                    val previousVote = voteSnap.getBoolean("isUpvote")
+                    if (previousVote == isUpvote) {
+                        // Cancel vote
+                        transaction.update(
+                            reviewRef,
+                            if (isUpvote) "upvotes" else "downvotes",
+                            (if (isUpvote) currentUpvotes else currentDownvotes) - 1
+                        )
+                        transaction.delete(voteRef)
+                    } else {
+                        // Switch vote
+                        transaction.update(reviewRef, mapOf(
+                            "upvotes" to if (isUpvote) currentUpvotes + 1 else currentUpvotes - 1,
+                            "downvotes" to if (isUpvote) currentDownvotes - 1 else currentDownvotes + 1
+                        ))
+                        transaction.update(voteRef, mapOf(
+                            "isUpvote" to isUpvote,
+                            "reviewOwnerId" to reviewOwnerId
+                        ))
+                    }
+                } else {
+                    // First-time vote
                     transaction.update(
                         reviewRef,
                         if (isUpvote) "upvotes" else "downvotes",
-                        (if (isUpvote) currentUpvotes else currentDownvotes) - 1
+                        (if (isUpvote) currentUpvotes else currentDownvotes) + 1
                     )
-                    transaction.delete(voteRef)
-                } else {
-                    // Switch vote
-                    transaction.update(reviewRef, mapOf(
-                        "upvotes" to if (isUpvote) currentUpvotes + 1 else currentUpvotes - 1,
-                        "downvotes" to if (isUpvote) currentDownvotes - 1 else currentDownvotes + 1
+                    transaction.set(voteRef, mapOf(
+                        "userId" to userId,
+                        "isUpvote" to isUpvote,
+                        "reviewOwnerId" to reviewOwnerId
                     ))
-                    transaction.update(voteRef, mapOf("isUpvote" to isUpvote))
                 }
-            } else {
-                // First-time vote
-                transaction.update(
-                    reviewRef,
-                    if (isUpvote) "upvotes" else "downvotes",
-                    (if (isUpvote) currentUpvotes else currentDownvotes) + 1
-                )
-                transaction.set(voteRef, mapOf("userId" to userId, "isUpvote" to isUpvote))
-            }
-        }.addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
+            }.addOnSuccessListener { onComplete(true) }
+                .addOnFailureListener { onComplete(false) }
+
+        }.addOnFailureListener {
+            onComplete(false)
+        }
     }
 
     fun getVoteStatus(
