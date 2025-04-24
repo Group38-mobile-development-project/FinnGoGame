@@ -136,5 +136,5 @@ $ git clone https://github.com/Group38-mobile-development-project/GameStore.git
 ---
 
 ## 🚀 Author
-- Developed by Ahn Sungmin, Ha Nguyen, Bibimaryam Jakipbaeva
+- Developed by Ahn Sungmin, Ha Nguyen, Bibimaryam Jakipbaeva.
 
