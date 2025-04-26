@@ -11,6 +11,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.example.gamestore.presentation.platform.PlatformGameViewModel
 import com.example.gamestore.presentation.utils.SearchBar
+import androidx.compose.ui.unit.dp
 import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -18,6 +19,7 @@ import android.util.Log
 fun GameListScreenFilteredByPlatfrom(
     navController: NavController,
     platformId: Int,
+    platformName: String, // <<< platformName
     onGameClick: (Int) -> Unit
 ) {
     val viewModel = remember { PlatformGameViewModel(platformId) }
@@ -26,14 +28,24 @@ fun GameListScreenFilteredByPlatfrom(
 
     Scaffold(
         topBar = {
-            SearchBar(
-                title = "Search for game",
-                navController = navController,
-                value = searchQuery,
-                onValueChange = { viewModel.onQueryChanged(it) }
-            )
+            Column {
+                SearchBar(
+                    title = "Search for game",
+                    navController = navController,
+                    value = searchQuery,
+                    onValueChange = { viewModel.onQueryChanged(it) }
+                )
+                Text(
+                    text = platformName,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
         }
-    ) { padding ->
+    )
+
+    { padding ->
         LazyColumn(modifier = Modifier.padding(padding)) {
             items(
                 count = pagingItems.itemCount,

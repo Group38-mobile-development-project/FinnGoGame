@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
@@ -17,20 +18,34 @@ import com.example.gamestore.presentation.utils.SearchBar
 fun GameListScreenFilteredByGenre(
     navController: NavController,
     genreSlug: String,
+//    genreName: String, // <<< genreName
     onGameClick: (Int) -> Unit
 ) {
     val viewModel = remember { GenreGameViewModel(genreSlug) }
     val pagingItems = viewModel.games.collectAsLazyPagingItems()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
+    fun String.slugToTitle(): String {
+        return this.split("-", "_")
+            .joinToString(" ") { it.replaceFirstChar { char -> char.uppercase() } }
+    }
+
     Scaffold(
         topBar = {
-            SearchBar(
-                title = "Search for game",
-                navController = navController,
-                value = searchQuery,
-                onValueChange = { viewModel.onQueryChanged(it) }
-            )
+            Column {
+                SearchBar(
+                    title = "Search for game",
+                    navController = navController,
+                    value = searchQuery,
+                    onValueChange = { viewModel.onQueryChanged(it) }
+                )
+                Text(
+                    text = genreSlug.slugToTitle(),   // convert
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
         }
     ) { padding ->
         LazyColumn(modifier = Modifier.padding(padding)) {
