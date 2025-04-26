@@ -9,7 +9,7 @@ import com.example.gamestore.data.network.GameApi
 
 class PlatformPagingSource(
     private val apiService: GameApi,
-    private val platformSlug: String
+    private val platformId: Int   //  Int
 ) : PagingSource<Int, Game>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Game> {
@@ -18,7 +18,7 @@ class PlatformPagingSource(
 
         return try {
             val response = apiService.fetchGamesByPlatform(
-                platformSlug = platformSlug,
+                platformSlug = platformId.toString(),
                 page = page,
                 pageSize = pageSize
             )

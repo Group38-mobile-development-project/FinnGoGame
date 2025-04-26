@@ -97,24 +97,25 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             PlatformListScreen(
                 navController = navController,
                 onPlatformClick = { platform ->
-                    navController.navigate("game_list_platform/${platform.slug}")
+                    navController.navigate("game_list_platform/${platform.id}")
                 }
             )
         }
 
         composable(
-            "game_list_platform/{platformSlug}",
-            arguments = listOf(navArgument("platformSlug") { type = NavType.StringType })
+            "game_list_platform/{platformId}",
+            arguments = listOf(navArgument("platformId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val platformSlug = backStackEntry.arguments?.getString("platformSlug") ?: ""
+            val platformId = backStackEntry.arguments?.getInt("platformId") ?: 0
             GameListScreenFilteredByPlatfrom(
                 navController = navController,
-                platformSlug = platformSlug,
+                platformId = platformId,
                 onGameClick = { gameId ->
                     navController.navigate("game_detail/$gameId")
                 }
             )
         }
+
 
 
 

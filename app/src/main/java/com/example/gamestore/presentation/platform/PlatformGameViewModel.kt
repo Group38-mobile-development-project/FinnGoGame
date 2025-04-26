@@ -11,11 +11,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class PlatformGameViewModel(
-    platformSlug: String,
+    platformId: Int,
     repository: PlatformRepository = PlatformRepository()
 ) : ViewModel() {
+
     val games: Flow<PagingData<Game>> = repository
-        .getGamesByPlatform(platformSlug)
+        .getGamesByPlatform(platformId)
         .cachedIn(viewModelScope)
 
     private val _searchQuery = MutableStateFlow("")
@@ -25,4 +26,3 @@ class PlatformGameViewModel(
         _searchQuery.value = newQuery
     }
 }
-

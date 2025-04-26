@@ -19,11 +19,13 @@ class PlatformRepository {
         }
     }
 
-    fun getGamesByPlatform(platformSlug: String): Flow<PagingData<Game>> {
+    fun getGamesByPlatform(platformId: Int): Flow<PagingData<Game>> {
         return Pager(
             config = PagingConfig(pageSize = 20),
-            pagingSourceFactory = { PlatformPagingSource(ApiClient.apiService, platformSlug) }
+            pagingSourceFactory = {
+                PlatformPagingSource(ApiClient.apiService, platformId)
+            }
         ).flow
-    }
+}
 
 }

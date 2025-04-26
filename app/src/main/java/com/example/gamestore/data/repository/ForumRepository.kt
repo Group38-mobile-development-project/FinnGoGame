@@ -41,7 +41,7 @@ fun postNewForumMessage(title: String, content: String) {
     val username = user?.displayName?.takeIf { it.isNotBlank() }
         ?: user?.email?.takeIf { it.isNotBlank() }
         ?: "Anonymous"
-    
+
     // Log the values of userId and username to make sure they're correct
     Log.d("Forum", "userId: $userId, username: $username")
 

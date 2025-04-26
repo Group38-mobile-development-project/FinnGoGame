@@ -56,7 +56,7 @@ interface GameApi {
 
     @GET("games")
     suspend fun fetchGamesByPlatform(
-        @Query("platform") platformSlug: String,
+        @Query("platforms") platformSlug: String,
         @Query("page") page: Int,
         @Query("page_size") pageSize: Int = 20
     ): GameListResponse

@@ -48,7 +48,6 @@ fun ForumPageScreen(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    // --- state & live‑data hookup (unchanged) ---
     var posts by remember { mutableStateOf<List<ForumPost>>(emptyList()) }
     var isPosting by remember { mutableStateOf(false) }
     var postsLiveData = fetchForumPosts()
@@ -61,128 +60,127 @@ fun ForumPageScreen(
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
 
-    // --- UI starts here ---
-    Card(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = MaterialTheme.shapes.medium
+            .padding(16.dp)
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(
-                text = "Forum Page",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Title input (BasicTextField + hint)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color.Gray, MaterialTheme.shapes.small)
-                    .padding(8.dp)
-            ) {
-                if (title.isEmpty()) {
-                    Text("Enter title…", color = Color.Gray)
-                }
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                    keyboardActions = KA(onNext = { /* nothing special */ }),
-                    modifier = Modifier.fillMaxWidth()
+        item {
+            Column {
+                Text(
+                    text = "Forum Page",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-            }
 
-            Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
 
-            // Content input
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .border(1.dp, Color.Gray, MaterialTheme.shapes.small)
-                    .padding(8.dp)
-            ) {
-                if (content.isEmpty()) {
-                    Text("Enter content…", color = Color.Gray)
-                }
-                BasicTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KA(onDone = { /* nothing special */ }),
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Post button
-            Button(
-                onClick = {
-                    if (title.isNotBlank() && content.isNotBlank()) {
-                        isPosting = true
-                        postNewForumMessage(title, content)
-                        title = ""
-                        content = ""
-                        isPosting = false
-                        postsLiveData = fetchForumPosts()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isPosting
-            ) {
-                Text("Post Message")
-            }
-
-            // Loading spinner
-            if (isPosting) {
-                Row(
-                    Modifier
+                // Title input
+                Box(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .border(1.dp, Color.Gray, MaterialTheme.shapes.small)
+                        .padding(8.dp)
                 ) {
-                    CircularProgressIndicator(strokeWidth = 2.dp)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Posting…", color = MaterialTheme.colorScheme.onBackground)
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Posts list
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(posts) { post ->
-                    ForumPostItem(
-                        post = post,
-                        onDelete = { postId ->
-                            deleteForumPost(postId) { success ->
-                                // optionally show a Toast/Snackbar on failure
-                            }
-                        }
+                    if (title.isEmpty()) {
+                        Text("Enter title…", color = Color.Gray)
+                    }
+                    BasicTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                        keyboardActions = KA(onNext = { }),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
+
+                Spacer(Modifier.height(12.dp))
+
+                // Content input
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .border(1.dp, Color.Gray, MaterialTheme.shapes.small)
+                        .padding(8.dp)
+                ) {
+                    if (content.isEmpty()) {
+                        Text("Enter content…", color = Color.Gray)
+                    }
+                    BasicTextField(
+                        value = content,
+                        onValueChange = { content = it },
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KA(onDone = { }),
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                Button(
+                    onClick = {
+                        if (title.isNotBlank() && content.isNotBlank()) {
+                            isPosting = true
+                            postNewForumMessage(title, content)
+                            title = ""
+                            content = ""
+                            isPosting = false
+                            postsLiveData = fetchForumPosts()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isPosting
+                ) {
+                    Text("Post Message")
+                }
+
+                if (isPosting) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Posting…", color = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                Text(
+                    text = "Recent Posts",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
+        }
+
+        // List posts
+        items(posts) { post ->
+            ForumPostItem(
+                post = post,
+                onDelete = { postId ->
+                    deleteForumPost(postId) { success -> }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun ForumPostItem(post: ForumPost,
-                  onDelete: (String) -> Unit
+fun ForumPostItem(
+    post: ForumPost,
+    onDelete: (String) -> Unit
 ) {
-    // get current user uid
     val currentUserUid = FirebaseAuth.getInstance()
         .currentUser
         ?.uid
-
 
     Card(
         modifier = Modifier
@@ -198,7 +196,11 @@ fun ForumPostItem(post: ForumPost,
             ) {
                 Spacer(Modifier.width(8.dp))
                 Column {
-                    Text(post.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(
+                        post.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
                     Text(
                         post.username,
                         fontSize = 12.sp,
@@ -206,7 +208,6 @@ fun ForumPostItem(post: ForumPost,
                     )
                 }
                 Spacer(Modifier.weight(1f))
-                // only show delete button if this post belongs to the signed‑in user
                 if (post.userId == currentUserUid) {
                     IconButton(onClick = { onDelete(post.id) }) {
                         Icon(
@@ -217,25 +218,24 @@ fun ForumPostItem(post: ForumPost,
                 }
             }
 
+            Text(
+                post.timestamp.humanize(),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
 
-
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.LightGray,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
             Text(
-                    post.timestamp.humanize(),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-
-        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(post.content, fontSize = 14.sp)
-
-            Spacer(Modifier.height(8.dp))
-
-
+                post.content,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
     }
-
+}
 
