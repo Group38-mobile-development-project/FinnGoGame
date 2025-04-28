@@ -20,6 +20,7 @@ import com.example.gamestore.presentation.game.GameListItem
 import com.example.gamestore.data.model.Genre
 import com.example.gamestore.data.model.Platform
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,8 @@ fun GameSearchScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Search") })
+            TopAppBar(title = { Text("Search",
+                fontWeight = FontWeight.Bold) })
         }
     ) { padding ->
         Column(
