@@ -54,6 +54,7 @@ import com.example.gamestore.data.repository.ReviewRepository
 import com.example.gamestore.ui.ReviewViewModel
 import com.example.gamestore.ui.theme.DeepBlue
 import androidx.compose.runtime.collectAsState
+import com.example.gamestore.ui.theme.customPurple
 import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Color as ComposeColor
 
@@ -407,7 +408,7 @@ fun GameDetailScreen( navController: NavHostController, gameId: Int) {
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else DeepBlue),
+                            colors = ButtonDefaults.buttonColors(containerColor = if (fav) Color.Gray else customPurple),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(

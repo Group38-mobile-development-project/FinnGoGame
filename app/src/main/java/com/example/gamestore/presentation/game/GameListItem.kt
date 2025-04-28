@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.gamestore.data.model.Game
+import com.example.gamestore.ui.theme.lightPurple
 import kotlin.math.roundToInt
 
 @Composable
@@ -30,7 +31,7 @@ fun GameListItem(
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Gray
+            containerColor = lightPurple
         )
         ) {
         Row(modifier = Modifier.padding(12.dp)) {
